@@ -32,6 +32,12 @@ while running:
     # Fill the screen with a color (RGB format)
     screen.fill((0, 128, 255))
     
+    # Blit the images in the correct order
+    screen.blit(sky_cloud, (0, 0))  # Top layer
+    screen.blit(mountain, (0, 0))   # Middle layer
+    screen.blit(pine1, (0, 0))      # Bottom layer (behind)
+    screen.blit(pine2, (0, 0))      # Bottom layer (in front)
+
     # Update the display
     pygame.display.flip()
 
