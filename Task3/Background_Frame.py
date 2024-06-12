@@ -10,6 +10,12 @@ screen_height = 1080
 screen = pygame.display.set_mode((screen_width, screen_height))
 pygame.display.set_caption('Pygame Screen')
 
+# Load images
+sky_cloud = pygame.image.load('sky_cloud.png').convert_alpha()
+mountain = pygame.image.load('mountain.png').convert_alpha()
+pine1 = pygame.image.load('pine1.png').convert_alpha()
+pine2 = pygame.image.load('pine2.png').convert_alpha()
+
 # Main loop
 running = True
 while running:
