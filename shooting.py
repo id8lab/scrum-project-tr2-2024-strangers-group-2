@@ -18,7 +18,8 @@ moving_left = False
 moving_right = False
 
 BG = (144, 201, 120)
-
+# placeholder
+# place
 def draw_bg():
     screen.fill(BG)
 

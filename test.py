@@ -28,7 +28,7 @@ level = 1
 level_up_timer = 0
 
 # Load and resize heart image for player lives
-heart_image = pygame.image.load('./heart.png').convert_alpha()
+heart_image = pygame.image.load('heart.png').convert_alpha()
 heart_size = (30, 30)
 heart_image = pygame.transform.scale(heart_image, heart_size)
 
