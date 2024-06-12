@@ -11,11 +11,11 @@ screen = pygame.display.set_mode((screen_width, screen_height))
 pygame.display.set_caption('Pygame Screen')
 
 # Load images
-sky_cloud = pygame.image.load('sky_cloud.png').convert_alpha()
-mountain = pygame.image.load('mountain.png').convert_alpha()
-pine1 = pygame.image.load('pine1.png').convert_alpha()
-pine2 = pygame.image.load('pine2.png').convert_alpha()
-heart_image = pygame.image.load('minecraft-story-mode-pixel-art-video-games-minecraft-heart-removebg-preview.png').convert_alpha()
+sky_cloud = pygame.image.load('img_background/sky_cloud.png').convert_alpha()
+mountain = pygame.image.load('img_background/mountain.png').convert_alpha()
+pine1 = pygame.image.load('img_background/pine1.png').convert_alpha()
+pine2 = pygame.image.load('img_background/pine2.png').convert_alpha()
+heart_image = pygame.image.load('img_element/minecraft-story-mode-pixel-art-video-games-minecraft-heart-removebg-preview.png').convert_alpha()
 
 # Define new heights for sky
 sky_height = screen_height // 1.5  # Adjust this value as needed
@@ -49,8 +49,9 @@ def draw_time():
 def draw_lives():
     lives_text = font.render(f'Lives:', True, WHITE)
     screen.blit(lives_text, (10, 10))  # Top left corner
+    heart_y = 10 + (lives_text.get_height() - heart_size[1]) // 2  # Center the hearts vertically
     for i in range(player_lives):
-        screen.blit(heart_image, (lives_text.get_width() + 20 + i * (heart_size[0] + 10), 10))
+        screen.blit(heart_image, (lives_text.get_width() + 20 + i * (heart_size[0] + 10), heart_y))
 
 # Main loop
 clock = pygame.time.Clock()
