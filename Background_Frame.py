@@ -40,18 +40,20 @@ WHITE = (255, 255, 255)
 timer = 0
 player_lives = 3
 
-# Function to draw HUD
-def draw_hud():
+# Function to draw time
+def draw_time():
     timer_text = font.render(f'Time: {int(timer)}', True, WHITE)
-    lives_text = font.render(f'Lives:', True, WHITE)
     screen.blit(timer_text, (screen_width - timer_text.get_width() - 10, 10))  # Top right corner
+
+# Function to draw lives
+def draw_lives():
+    lives_text = font.render(f'Lives:', True, WHITE)
     screen.blit(lives_text, (10, 10))  # Top left corner
-    heart_x = lives_text.get_width() + 20  # Calculate heart position relative to life text
-    heart_y = 10 + (font.size(" ")[1] - heart_size[1]) // 2  # Center heart vertically with text
     for i in range(player_lives):
-        screen.blit(heart_image, (heart_x + i * (heart_size[0] + 10), heart_y))
+        screen.blit(heart_image, (lives_text.get_width() + 20 + i * (heart_size[0] + 10), 10))
 
 # Main loop
+clock = pygame.time.Clock()
 running = True
 while running:
     for event in pygame.event.get():
@@ -59,7 +61,7 @@ while running:
             running = False
     
     # Increment timer
-    timer += 1 / 60  # Assuming 60 FPS
+    timer += clock.get_time() / 1000  # Convert milliseconds to seconds
     
     # Fill the screen with a color (RGB format)
     screen.fill((0, 128, 255))
@@ -71,10 +73,14 @@ while running:
     screen.blit(pine2, (0, screen_height - pine_height))  # Bottom layer (in front)
 
     # Draw HUD
-    draw_hud()
+    draw_time()
+    draw_lives()
 
     # Update the display
     pygame.display.flip()
+    
+    # Cap the frame rate at 60 FPS
+    clock.tick(60)
 
 # Quit Pygame
 pygame.quit()
