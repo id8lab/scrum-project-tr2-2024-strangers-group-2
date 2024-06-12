@@ -28,7 +28,7 @@ level = 1
 level_up_timer = 0
 
 # Load and resize heart image for player lives
-heart_image = pygame.image.load('heart.png').convert_alpha()
+heart_image = pygame.image.load('img_element/heart.png').convert_alpha()
 heart_size = (30, 30)
 heart_image = pygame.transform.scale(heart_image, heart_size)
 
@@ -122,13 +122,13 @@ class Monster(pygame.sprite.Sprite):
 
 
 player_images = [
-    '8dd889acea826111937568e2301697c6-removebg-preview.png',
-    'Screenshot_2024-06-11_143220-removebg-preview.png',
-    'Screenshot_2024-06-11_160603-removebg-preview.png',
-    'Screenshot_2024-06-11_143220-removebg-preview.png',
-    '8dd889acea826111937568e2301697c6-removebg-preview.png'
+    'img_character/8dd889acea826111937568e2301697c6-removebg-preview.png',
+    'img_character/Screenshot_2024-06-11_143220-removebg-preview.png',
+    'img_character/Screenshot_2024-06-11_160603-removebg-preview.png',
+    'img_character/Screenshot_2024-06-11_143220-removebg-preview.png',
+    'img_character/8dd889acea826111937568e2301697c6-removebg-preview.png'
 ]
-enemy_image = '72d04ccc6edc0e1bb0a65400ca2671fe-removebg-preview.png'
+enemy_image = 'img_character/72d04ccc6edc0e1bb0a65400ca2671fe-removebg-preview.png'
 
 player = Monster(player_images, 200, 0.15, 5)
 enemy = Monster([enemy_image], 400, 0.3, 5)
