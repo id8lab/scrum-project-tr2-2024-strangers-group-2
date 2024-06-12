@@ -1,14 +1,35 @@
 import pygame
 import sys
+import csv
 
 # Initialize Pygame
 pygame.init()
+
+#define game variables
+ROWS = 16
+COLS = 150
+TILE_SIZE = 50
+TILE_TYPES = 21
+level = 1
 
 # Set up the display
 screen_width = 1400
 screen_height = 700
 screen = pygame.display.set_mode((screen_width, screen_height))
 pygame.display.set_caption('Pygame Screen')
+
+#create empty tile list
+world_data = []
+for row in range(ROWS):
+    r = [-1] * COLS
+    world_data.append(r)
+
+#load in level data and create world
+with open(f'level{level}_data.csv', newline='') as csvfile:
+    reader = csv.reader(csvfile, delimiter=',')
+    for x, row in enumerate(reader):
+        for y, tile in enumerate(row):
+            world_data[x][y] = int(tile)
 
 # Load images
 sky_cloud = pygame.image.load('img_background/sky_cloud.png').convert_alpha()
@@ -44,7 +65,9 @@ level = 1
 
 # Function to draw time
 def draw_time():
-    timer_text = font.render(f'{int(timer)}', True, WHITE)
+    minutes = int(timer) // 60
+    seconds = int(timer) % 60
+    timer_text = font.render(f'{minutes:02}:{seconds:02}', True, WHITE)
     screen.blit(timer_text, (screen_width - timer_text.get_width() - 10, screen_height - timer_text.get_height() - 10))  # Bottom right corner
 
 # Function to draw score
@@ -66,8 +89,31 @@ def draw_lives():
     for i in range(player_lives):
         screen.blit(heart_image, (lives_text.get_width() + 20 + i * (heart_size[0] + 10), heart_y))
 
+class World():
+    def __init__(self):
+        self.obstacle_list = []
+
+    def process_data(self, data):
+        # Process level data
+        for y, row in enumerate(data):
+            for x, tile in enumerate(row):
+                if tile >= 0:
+                    img_rect = pygame.Rect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE)
+                    if tile >= 0 and tile <= 8:
+                        self.obstacle_list.append(img_rect)
+
+    def draw(self, screen):
+        # Draw blocks and floor
+        for tile in self.obstacle_list:
+            pygame.draw.rect(screen, (144, 201, 120), tile)
+            pygame.draw.rect(screen, (0, 0, 0), tile, 2)
+
 # Main loop
 clock = pygame.time.Clock()
+
+world = World()
+world.process_data(world_data)
+
 running = True
 while running:
     for event in pygame.event.get():
@@ -87,6 +133,7 @@ while running:
     screen.blit(pine2, (0, screen_height - pine_height))  # Bottom layer (in front)
 
     # Draw HUD
+    world.draw(screen)
     draw_time()
     draw_score()
     draw_level()

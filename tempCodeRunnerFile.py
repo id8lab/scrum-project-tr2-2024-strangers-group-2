@@ -1,184 +1,88 @@
 import pygame
+import sys
 
+# Initialize Pygame
 pygame.init()
 
-# Screen settings
-SCREEN_WIDTH = 800
-SCREEN_HEIGHT = int(SCREEN_WIDTH * 0.8)
-GROUND_LEVEL = SCREEN_HEIGHT - 70
-screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-pygame.display.set_caption('Shooter')
+# Set up the display
+screen_width = 1400
+screen_height = 700
+screen = pygame.display.set_mode((screen_width, screen_height))
+pygame.display.set_caption('Pygame Screen')
 
-# Clock settings
-clock = pygame.time.Clock()
-FPS = 60
+# Load images
+sky_cloud = pygame.image.load('img_background/sky_cloud.png').convert_alpha()
+mountain = pygame.image.load('img_background/mountain.png').convert_alpha()
+pine1 = pygame.image.load('img_background/pine1.png').convert_alpha()
+pine2 = pygame.image.load('img_background/pine2.png').convert_alpha()
+heart_image = pygame.image.load('img_element/minecraft-story-mode-pixel-art-video-games-minecraft-heart-removebg-preview.png').convert_alpha()
 
-# Game variables
-GRAVITY = 0.75
-moving_left = False
-moving_right = False
-BG = (144, 201, 120)
+# Define new heights for sky
+sky_height = screen_height // 1.5  # Adjust this value as needed
+sky_cloud = pygame.transform.scale(sky_cloud, (screen_width, sky_height))
+
+# Define new heights for mountain
+mountain_height = screen_height // 1.5  # Adjust this value as needed
+mountain = pygame.transform.scale(mountain, (screen_width, mountain_height))
+
+# Reduce the height of the pine images
+pine_height = screen_height // 1.8  # Adjust this value as needed
+pine1 = pygame.transform.scale(pine1, (screen_width, pine_height))
+pine2 = pygame.transform.scale(pine2, (screen_width, pine_height))
+
+# Scale heart image
+heart_size = (40, 40)
+heart_image = pygame.transform.scale(heart_image, heart_size)
 
 # HUD settings
-font = pygame.font.SysFont('comicsans', 30)
+font = pygame.font.SysFont('comicsans', 50)
 WHITE = (255, 255, 255)
 timer = 0
 player_lives = 3
-level = 1
-level_up_timer = 0
 
-# Load and resize heart image for player lives
-heart_image = pygame.image.load('heart.png').convert_alpha()
-heart_size = (30, 30)
-heart_image = pygame.transform.scale(heart_image, heart_size)
+# Function to draw time
+def draw_time():
+    timer_text = font.render(f'{int(timer)}', True, WHITE)
+    screen.blit(timer_text, (screen_width - timer_text.get_width() - 10, screen_height - timer_text.get_height() - 10))  # Bottom right corner
 
-
-# Function to draw HUD
-def draw_hud():
-    lives_text = font.render(f'Level: {level}  Lives:', True, WHITE)
-    timer_text = font.render(f'Time: {int(timer)}', True, WHITE)
-    screen.blit(lives_text, (10, 10))
-    screen.blit(timer_text, (SCREEN_WIDTH - timer_text.get_width() - 10, 10))
-
-    # Draw hearts for player lives
-    heart_spacing = 5
-    lives_text_width = lives_text.get_width()
+# Function to draw lives
+def draw_lives():
+    lives_text = font.render(f'Lives:', True, WHITE)
+    screen.blit(lives_text, (10, 10))  # Top left corner
+    heart_y = 10 + (lives_text.get_height() - heart_size[1]) // 2  # Center the hearts vertically
     for i in range(player_lives):
-        screen.blit(heart_image, (lives_text_width + 20 + i * (heart_size[0] + heart_spacing), 15))
+        screen.blit(heart_image, (lives_text.get_width() + 20 + i * (heart_size[0] + 10), heart_y))
 
-
-class Monster(pygame.sprite.Sprite):
-    def __init__(self, image_paths, x, scale, speed):
-        pygame.sprite.Sprite.__init__(self)
-        self.speed = speed
-        self.direction = 1
-        self.jump = False
-        self.vel_y = 0
-        self.flip = False
-        self.animation_list = []
-        self.index = 0
-        self.update_time = pygame.time.get_ticks()
-
-        # Define a common size for the images
-        common_width = 64
-        common_height = 64
-
-        # Load the images and scale them to the common size
-        for image_path in image_paths:
-            image = pygame.image.load(image_path)
-            image = pygame.transform.scale(image, (common_width, common_height))
-            self.animation_list.append(image)
-
-        self.image = self.animation_list[self.index]
-        self.rect = self.image.get_rect()
-        self.rect.center = (x, GROUND_LEVEL)
-        self.base_y = GROUND_LEVEL
-        self.ground_level = GROUND_LEVEL  # Set ground level attribute
-
-    def move(self, moving_left, moving_right):
-        dx = 0
-        dy = 0
-
-        if moving_left or moving_right:
-            self.update_animation()
-
-        if moving_left:
-            dx = -self.speed
-            self.flip = True
-            self.direction = -1
-
-        if moving_right:
-            dx = self.speed
-            self.flip = False
-            self.direction = 1
-
-        if self.jump:
-            self.vel_y = -11
-            self.jump = False
-
-        self.vel_y += GRAVITY
-
-        dy += self.vel_y
-
-        # Check for ground collision
-        if self.rect.bottom + dy > self.ground_level:
-            dy = self.ground_level - self.rect.bottom
-            self.vel_y = 0
-
-        self.rect.x += dx
-        self.rect.y += dy
-
-    def update_animation(self):
-        ANIMATION_COOLDOWN = 100  # milliseconds
-
-        # Update animation only
-        if pygame.time.get_ticks() - self.update_time > ANIMATION_COOLDOWN:
-            self.update_time = pygame.time.get_ticks()
-            self.index = (self.index + 1) % len(self.animation_list)
-            self.image = self.animation_list[self.index]
-
-    def draw(self):
-        screen.blit(pygame.transform.flip(self.image, self.flip, False), self.rect)
-
-
-player_images = [
-    '8dd889acea826111937568e2301697c6-removebg-preview.png',
-    'Screenshot_2024-06-11_143220-removebg-preview.png',
-    'Screenshot_2024-06-11_160603-removebg-preview.png',
-    'Screenshot_2024-06-11_143220-removebg-preview.png',
-    '8dd889acea826111937568e2301697c6-removebg-preview.png'
-]
-enemy_image = '72d04ccc6edc0e1bb0a65400ca2671fe-removebg-preview.png'
-
-player = Monster(player_images, 200, 0.15, 5)
-enemy = Monster([enemy_image], 400, 0.3, 5)
-
-# Game loop
-run = True
-while run:
-    clock.tick(FPS)
-    timer += 1 / FPS  # Timer increment
-
-    # Level up logic
-    level_up_timer += 1 / FPS
-    if level_up_timer >= 30:  # Increase level every 30 seconds
-        level += 1
-        level_up_timer = 0
-
-    # Draw background
-    screen.fill(BG)
-
-    # Draw HUD
-    draw_hud()
-
-    # Draw sprites
-    player.draw()
-    enemy.update_animation()
-    enemy.draw()
-
-    # Move player
-    player.move(moving_left, moving_right)
-
-    # Handle events
+# Main loop
+clock = pygame.time.Clock()
+running = True
+while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
-            run = False
-        if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_a:
-                moving_left = True
-            if event.key == pygame.K_d:
-                moving_right = True
-            if event.key == pygame.K_w:
-                player.jump = True
-            if event.key == pygame.K_ESCAPE:
-                run = False
-        if event.type == pygame.KEYUP:
-            if event.key == pygame.K_a:
-                moving_left = False
-            if event.key == pygame.K_d:
-                moving_right = False
+            running = False
+    
+    # Increment timer
+    timer += clock.get_time() / 1000  # Convert milliseconds to seconds
+    
+    # Fill the screen with a color (RGB format)
+    screen.fill((0, 128, 255))
+    
+    # Blit the images in the correct order
+    screen.blit(sky_cloud, (0, 0))  # Top layer
+    screen.blit(mountain, (0, 0))   # Middle layer
+    screen.blit(pine1, (0, screen_height - pine_height))  # Bottom layer (behind)
+    screen.blit(pine2, (0, screen_height - pine_height))  # Bottom layer (in front)
 
-    # Update display
-    pygame.display.update()
+    # Draw HUD
+    draw_time()
+    draw_lives()
 
+    # Update the display
+    pygame.display.flip()
+    
+    # Cap the frame rate at 60 FPS
+    clock.tick(60)
+
+# Quit Pygame
 pygame.quit()
+sys.exit()
