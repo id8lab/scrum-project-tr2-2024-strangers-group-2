@@ -42,8 +42,8 @@ player_lives = 3
 
 # Function to draw time
 def draw_time():
-    timer_text = font.render(f'Time: {int(timer)}', True, WHITE)
-    screen.blit(timer_text, (screen_width - timer_text.get_width() - 10, 10))  # Top right corner
+    timer_text = font.render(f'{int(timer)}', True, WHITE)
+    screen.blit(timer_text, (screen_width - timer_text.get_width() - 10, screen_height - timer_text.get_height() - 10))  # Bottom right corner
 
 # Function to draw lives
 def draw_lives():
