@@ -40,6 +40,7 @@ WHITE = (255, 255, 255)
 timer = 0
 player_lives = 3
 score = 0
+level = 1
 
 # Function to draw time
 def draw_time():
@@ -50,6 +51,12 @@ def draw_time():
 def draw_score():
     score_text = font.render(f'Score: {score}', True, WHITE)
     screen.blit(score_text, (screen_width - score_text.get_width() - 10, 10))  # Top right corner
+
+# Function to draw level
+def draw_level():
+    level_text = font.render(f'Level: {level}', True, WHITE)
+    level_x = (screen_width - level_text.get_width()) // 2
+    screen.blit(level_text, (level_x, 10))  # Top middle
 
 # Function to draw lives
 def draw_lives():
@@ -82,6 +89,7 @@ while running:
     # Draw HUD
     draw_time()
     draw_score()
+    draw_level()
     draw_lives()
 
     # Update the display
