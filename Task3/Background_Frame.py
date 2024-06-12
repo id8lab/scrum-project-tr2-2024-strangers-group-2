@@ -16,11 +16,18 @@ mountain = pygame.image.load('mountain.png').convert_alpha()
 pine1 = pygame.image.load('pine1.png').convert_alpha()
 pine2 = pygame.image.load('pine2.png').convert_alpha()
 
-# Scale images to fit the screen if necessary (optional)
-sky_cloud = pygame.transform.scale(sky_cloud, (screen_width, screen_height))
-mountain = pygame.transform.scale(mountain, (screen_width, screen_height))
-pine1 = pygame.transform.scale(pine1, (screen_width, screen_height))
-pine2 = pygame.transform.scale(pine2, (screen_width, screen_height))
+# Define new heights for sky
+sky_height = screen_height // 1.5  # Adjust this value as needed
+sky_cloud = pygame.transform.scale(sky_cloud, (screen_width, sky_height))
+
+# Define new heights for mountain
+mountain_height = screen_height // 1.5  # Adjust this value as needed
+mountain = pygame.transform.scale(mountain, (screen_width, mountain_height))
+
+# Reduce the height of the pine images
+pine_height = screen_height // 1.8  # Adjust this value as needed
+pine1 = pygame.transform.scale(pine1, (screen_width, pine_height))
+pine2 = pygame.transform.scale(pine2, (screen_width, pine_height))
 
 # Main loop
 running = True
@@ -35,8 +42,8 @@ while running:
     # Blit the images in the correct order
     screen.blit(sky_cloud, (0, 0))  # Top layer
     screen.blit(mountain, (0, 0))   # Middle layer
-    screen.blit(pine1, (0, 0))      # Bottom layer (behind)
-    screen.blit(pine2, (0, 0))      # Bottom layer (in front)
+    screen.blit(pine1, (0, screen_height - pine_height))  # Bottom layer (behind)
+    screen.blit(pine2, (0, screen_height - pine_height))  # Bottom layer (in front)
 
     # Update the display
     pygame.display.flip()
