@@ -1,2 +1,1 @@
-
-    enemy.update_animation
+set_caption
