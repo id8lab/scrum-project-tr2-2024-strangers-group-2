@@ -16,6 +16,12 @@ mountain = pygame.image.load('mountain.png').convert_alpha()
 pine1 = pygame.image.load('pine1.png').convert_alpha()
 pine2 = pygame.image.load('pine2.png').convert_alpha()
 
+# Scale images to fit the screen if necessary (optional)
+sky_cloud = pygame.transform.scale(sky_cloud, (screen_width, screen_height))
+mountain = pygame.transform.scale(mountain, (screen_width, screen_height))
+pine1 = pygame.transform.scale(pine1, (screen_width, screen_height))
+pine2 = pygame.transform.scale(pine2, (screen_width, screen_height))
+
 # Main loop
 running = True
 while running:
