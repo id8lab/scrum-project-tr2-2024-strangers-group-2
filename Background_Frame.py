@@ -39,11 +39,17 @@ font = pygame.font.SysFont('comicsans', 50)
 WHITE = (255, 255, 255)
 timer = 0
 player_lives = 3
+score = 0
 
 # Function to draw time
 def draw_time():
     timer_text = font.render(f'{int(timer)}', True, WHITE)
     screen.blit(timer_text, (screen_width - timer_text.get_width() - 10, screen_height - timer_text.get_height() - 10))  # Bottom right corner
+
+# Function to draw score
+def draw_score():
+    score_text = font.render(f'Score: {score}', True, WHITE)
+    screen.blit(score_text, (screen_width - score_text.get_width() - 10, 10))  # Top right corner
 
 # Function to draw lives
 def draw_lives():
@@ -75,6 +81,7 @@ while running:
 
     # Draw HUD
     draw_time()
+    draw_score()
     draw_lives()
 
     # Update the display
