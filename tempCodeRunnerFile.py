@@ -1,0 +1,2 @@
+
+    enemy.update_animation
