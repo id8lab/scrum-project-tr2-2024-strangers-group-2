@@ -63,6 +63,12 @@ player_lives = 3
 score = 0
 level = 1
 
+# Background positions
+sky_x = 0
+mountain_x = 0
+pine1_x = 0
+pine2_x = 0
+
 # Function to draw time
 def draw_time():
     minutes = int(timer) // 60
@@ -92,6 +98,7 @@ def draw_lives():
 class World():
     def __init__(self):
         self.obstacle_list = []
+        self.floor_list = []
 
     def process_data(self, data):
         # Process level data
@@ -101,12 +108,14 @@ class World():
                     img_rect = pygame.Rect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE)
                     if tile >= 0 and tile <= 8:
                         self.obstacle_list.append(img_rect)
+                        self.floor_list.append(img_rect)
 
-    def draw(self, screen):
+    def draw(self, screen, scroll):
         # Draw blocks and floor
         for tile in self.obstacle_list:
-            pygame.draw.rect(screen, (144, 201, 120), tile)
-            pygame.draw.rect(screen, (0, 0, 0), tile, 2)
+            tile_rect = tile.move(scroll, 0)
+            pygame.draw.rect(screen, (144, 201, 120), tile_rect)
+            pygame.draw.rect(screen, (0, 0, 0), tile_rect, 2)
 
 class Monster(pygame.sprite.Sprite):
     def __init__(self, image_paths, x, scale, speed):
@@ -162,12 +171,31 @@ class Monster(pygame.sprite.Sprite):
         dy += self.vel_y 
 
         # Check for ground collision
-        if self.rect.bottom + dy > self.ground_level:
-            dy = self.ground_level - self.rect.bottom
-            self.vel_y = 0
-
         self.rect.x += dx
+        for tile in world.floor_list:
+            if tile.colliderect(self.rect):
+                if dx > 0:
+                    self.rect.right = tile.left
+                if dx < 0:
+                    self.rect.left = tile.right
         self.rect.y += dy
+        for tile in world.floor_list:
+            if tile.colliderect(self.rect):
+                if dy > 0:
+                    self.rect.bottom = tile.top
+                    self.vel_y = 0
+                if dy < 0:
+                    self.rect.top = tile.bottom
+
+        # Check collision with obstacles
+        for obstacle in world.obstacle_list:
+            if obstacle.colliderect(self.rect):
+                self.collided = True
+                break
+        else:
+            self.collided = False
+
+        return dx  # Return the amount of horizontal movement
 
     def update_animation(self):
         ANIMATION_COOLDOWN = 100  # milliseconds
@@ -178,16 +206,17 @@ class Monster(pygame.sprite.Sprite):
             self.index = (self.index + 1) % len(self.animation_list)
             self.image = self.animation_list[self.index]
 
-    def draw(self, screen):
-        screen.blit(pygame.transform.flip(self.image, self.flip, False), self.rect)
+    def draw(self, screen, scroll):
+        rect_with_scroll = self.rect.move(scroll, 0)
+        screen.blit(pygame.transform.flip(self.image, self.flip, False), rect_with_scroll)
 
 # Load player images
 player_images = [
-    'img_character\8dd889acea826111937568e2301697c6-removebg-preview.png', 
-    'img_character\Screenshot_2024-06-11_143220-removebg-preview.png',
-    'img_character\Screenshot_2024-06-11_160603-removebg-preview.png',
-    'img_character\Screenshot_2024-06-11_143220-removebg-preview.png',
-    'img_character\8dd889acea826111937568e2301697c6-removebg-preview.png'
+    r'img_character\Screenshot_2024-06-14_163851-removebg-preview.png', 
+    r'img_character\Screenshot_2024-06-14_164717-removebg-preview.png',
+    r'img_character\Screenshot_2024-06-14_164033-removebg-preview.png',
+    r'img_character\Screenshot_2024-06-14_164605-removebg-preview.png',
+    r'img_character\Screenshot_2024-06-14_164820-removebg-preview.png'
 ]
 
 player = Monster(player_images, 200, 0.15, 5)
@@ -200,6 +229,8 @@ world.process_data(world_data)
 moving_left = False
 moving_right = False
 running = True
+scroll = 0
+scroll_speed = 5
 while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -227,30 +258,49 @@ while running:
     # Fill the screen with a color (RGB format)
     screen.fill((0, 128, 255))
     
-    # Blit the images in the correct order
-    screen.blit(sky_cloud, (0, 0))  # Top layer
-    screen.blit(mountain, (0, 0))   # Middle layer
-    screen.blit(pine1, (0, screen_height - pine_height))  # Bottom layer (behind)
-    screen.blit(pine2, (0, screen_height - pine_height))  # Bottom layer (in front)
+    # Move the player
+    dx = player.move(moving_left, moving_right)
+    
+    # Update scroll
+    if not player.collided:
+        if moving_right:
+            scroll -= scroll_speed
+        if moving_left:
+            scroll += scroll_speed
 
-    # Draw HUD
-    world.draw(screen)
+    # Update background positions
+    if not player.collided:
+        sky_x = (sky_x - dx * 0.1) % screen_width
+        mountain_x = (mountain_x - dx * 0.2) % screen_width
+        pine1_x = (pine1_x - dx * 0.6) % screen_width
+        pine2_x = (pine2_x - dx * 0.8) % screen_width
+        
+    # Draw the background images
+    screen.blit(sky_cloud, (sky_x, 0))
+    screen.blit(sky_cloud, (sky_x - screen_width, 0))
+    screen.blit(mountain, (mountain_x, screen_height - mountain_height))
+    screen.blit(mountain, (mountain_x - screen_width, screen_height - mountain_height))
+    screen.blit(pine1, (pine1_x, screen_height - pine_height))
+    screen.blit(pine1, (pine1_x - screen_width, screen_height - pine_height))
+    screen.blit(pine2, (pine2_x, screen_height - pine_height))
+    screen.blit(pine2, (pine2_x - screen_width, screen_height - pine_height))
+
+    # Draw the world
+    world.draw(screen, scroll)
+
+    # Draw the player
+    player.draw(screen, scroll)
+
+    # Draw HUD elements
     draw_time()
     draw_score()
     draw_level()
-   
     draw_lives()
 
-    # Update and draw the player
-    player.move(moving_left, moving_right)
-    player.draw(screen)
-
-    # Update the display
-    pygame.display.flip()
-    
-    # Cap the frame rate at 60 FPS
+    # Update display
+    pygame.display.update()
     clock.tick(60)
 
-# Quit Pygame
 pygame.quit()
 sys.exit()
+

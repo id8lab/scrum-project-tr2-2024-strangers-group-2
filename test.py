@@ -122,13 +122,13 @@ class Monster(pygame.sprite.Sprite):
 
 
 player_images = [
-    'img_character/8dd889acea826111937568e2301697c6-removebg-preview.png',
-    'img_character/Screenshot_2024-06-11_143220-removebg-preview.png',
-    'img_character/Screenshot_2024-06-11_160603-removebg-preview.png',
-    'img_character/Screenshot_2024-06-11_143220-removebg-preview.png',
-    'img_character/8dd889acea826111937568e2301697c6-removebg-preview.png'
+    r'img_character\Screenshot_2024-06-14_163851-removebg-preview.png', 
+    r'img_character\Screenshot_2024-06-14_164717-removebg-preview.png',
+    r'img_character\Screenshot_2024-06-14_164033-removebg-preview.png',
+    r'img_character\Screenshot_2024-06-14_164605-removebg-preview.png',
+    r'img_character\Screenshot_2024-06-14_164820-removebg-preview.png'
 ]
-enemy_image = 'img_character/72d04ccc6edc0e1bb0a65400ca2671fe-removebg-preview.png'
+enemy_image = 'img_character\Screenshot_2024-06-14_163851-removebg-preview.png'
 
 player = Monster(player_images, 200, 0.15, 5)
 enemy = Monster([enemy_image], 400, 0.3, 5)
