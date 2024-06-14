@@ -108,17 +108,118 @@ class World():
             pygame.draw.rect(screen, (144, 201, 120), tile)
             pygame.draw.rect(screen, (0, 0, 0), tile, 2)
 
+class Monster(pygame.sprite.Sprite):
+    def __init__(self, image_paths, x, scale, speed):
+        pygame.sprite.Sprite.__init__(self)
+        self.speed = speed
+        self.direction = 1
+        self.jump = False
+        self.vel_y = 0
+        self.flip = False
+        self.animation_list = []
+        self.index = 0
+        self.update_time = pygame.time.get_ticks()
+
+        # Define a common size for the images
+        common_width = 64
+        common_height = 64
+
+        # Load the images and scale them to the common size
+        for image_path in image_paths:
+            image = pygame.image.load(image_path)
+            image = pygame.transform.scale(image, (common_width, common_height))
+            self.animation_list.append(image)
+        
+        self.image = self.animation_list[self.index]
+        self.rect = self.image.get_rect()
+        self.rect.center = (x, screen_height - 70)
+        self.base_y = screen_height - 70
+        self.ground_level = screen_height - 70  # Set ground level attribute
+
+    def move(self, moving_left, moving_right):
+        dx = 0
+        dy = 0
+
+        if moving_left or moving_right:
+            self.update_animation()
+
+        if moving_left:
+            dx = -self.speed
+            self.flip = True
+            self.direction = -1
+
+        if moving_right:
+            dx = self.speed
+            self.flip = False
+            self.direction = 1
+
+        if self.jump:
+            self.vel_y = -11
+            self.jump = False
+
+        self.vel_y += 0.75  # GRAVITY
+
+        dy += self.vel_y 
+
+        # Check for ground collision
+        if self.rect.bottom + dy > self.ground_level:
+            dy = self.ground_level - self.rect.bottom
+            self.vel_y = 0
+
+        self.rect.x += dx
+        self.rect.y += dy
+
+    def update_animation(self):
+        ANIMATION_COOLDOWN = 100  # milliseconds
+
+        # Update animation only
+        if pygame.time.get_ticks() - self.update_time > ANIMATION_COOLDOWN:
+            self.update_time = pygame.time.get_ticks()
+            self.index = (self.index + 1) % len(self.animation_list)
+            self.image = self.animation_list[self.index]
+
+    def draw(self, screen):
+        screen.blit(pygame.transform.flip(self.image, self.flip, False), self.rect)
+
+# Load player images
+player_images = [
+    'img_character\8dd889acea826111937568e2301697c6-removebg-preview.png', 
+    'img_character\Screenshot_2024-06-11_143220-removebg-preview.png',
+    'img_character\Screenshot_2024-06-11_160603-removebg-preview.png',
+    'img_character\Screenshot_2024-06-11_143220-removebg-preview.png',
+    'img_character\8dd889acea826111937568e2301697c6-removebg-preview.png'
+]
+
+player = Monster(player_images, 200, 0.15, 5)
+
 # Main loop
 clock = pygame.time.Clock()
-
 world = World()
 world.process_data(world_data)
 
+moving_left = False
+moving_right = False
 running = True
 while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
+        # button press
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_a:
+                moving_left = True
+            if event.key == pygame.K_d:
+                moving_right = True
+            if event.key == pygame.K_w:
+                player.jump = True
+            if event.key == pygame.K_ESCAPE:
+                running = False
+        # button release
+        if event.type == pygame.KEYUP:
+            if event.key == pygame.K_a:
+                moving_left = False
+            if event.key == pygame.K_d:
+                moving_right = False
     
     # Increment timer
     timer += clock.get_time() / 1000  # Convert milliseconds to seconds
@@ -137,7 +238,12 @@ while running:
     draw_time()
     draw_score()
     draw_level()
+   
     draw_lives()
+
+    # Update and draw the player
+    player.move(moving_left, moving_right)
+    player.draw(screen)
 
     # Update the display
     pygame.display.flip()
