@@ -274,7 +274,7 @@ while running:
         mountain_x = (mountain_x - dx * 0.2) % screen_width
         pine1_x = (pine1_x - dx * 0.6) % screen_width
         pine2_x = (pine2_x - dx * 0.8) % screen_width
-        
+
     # Draw the background images
     screen.blit(sky_cloud, (sky_x, 0))
     screen.blit(sky_cloud, (sky_x - screen_width, 0))
@@ -284,7 +284,7 @@ while running:
     screen.blit(pine1, (pine1_x - screen_width, screen_height - pine_height))
     screen.blit(pine2, (pine2_x, screen_height - pine_height))
     screen.blit(pine2, (pine2_x - screen_width, screen_height - pine_height))
-
+    
     # Draw the world
     world.draw(screen, scroll)
 
