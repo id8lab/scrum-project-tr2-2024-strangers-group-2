@@ -39,9 +39,13 @@ video_button = button.Button(312, 200, video_img, 1)
 audio_button = button.Button(312, 300, audio_img, 1)
 keys_button = button.Button(312, 400, keys_img, 1)
 back_button = button.Button(412, 500, back_img, 1)
+
+
 def draw_text(text, font, color, x, y):
     text_surface = font.render(text, True, color)
     screen.blit(text_surface, (x, y))
+
+
 # Main loop
 running = True
 while running:
