@@ -164,9 +164,14 @@ class Monster(pygame.sprite.Sprite):
             self.direction = 1
 
         if self.jump and self.on_ground:
-            self.vel_y = -11
+            self.vel_y = -14
             self.jump = False
             self.on_ground = False
+hello new branch
+
+hello
+
+hheehehe
 
         self.vel_y += 0.75  # GRAVITY
 
