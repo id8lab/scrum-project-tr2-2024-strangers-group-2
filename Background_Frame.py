@@ -122,6 +122,7 @@ class Monster(pygame.sprite.Sprite):
         pygame.sprite.Sprite.__init__(self)
         self.speed = speed
         self.direction = 1
+        self.on_ground = True  
         self.jump = False
         self.vel_y = 0
         self.flip = False
@@ -162,9 +163,10 @@ class Monster(pygame.sprite.Sprite):
             self.flip = False
             self.direction = 1
 
-        if self.jump:
+        if self.jump and self.on_ground:
             self.vel_y = -11
             self.jump = False
+            self.on_ground = False
 
         self.vel_y += 0.75  # GRAVITY
 
@@ -184,6 +186,7 @@ class Monster(pygame.sprite.Sprite):
                 if dy > 0:
                     self.rect.bottom = tile.top
                     self.vel_y = 0
+                    self.on_ground = True
                 if dy < 0:
                     self.rect.top = tile.bottom
 
