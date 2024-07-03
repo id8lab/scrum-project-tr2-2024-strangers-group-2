@@ -1,6 +1,7 @@
 import pygame
 import sys
 import csv
+from sounds import Sounds
 
 # Initialize Pygame
 pygame.init()
@@ -11,6 +12,9 @@ COLS = 150
 TILE_SIZE = 50
 TILE_TYPES = 21
 level = 1
+
+# Create an instance for the Sounds class
+sounds = Sounds()
 
 # Set up the display
 screen_width = 1400
@@ -243,6 +247,7 @@ while running:
                 moving_right = True
             if event.key == pygame.K_w:
                 player.jump = True
+                sounds.play_jump_sound()
             if event.key == pygame.K_ESCAPE:
                 running = False
         # button release
