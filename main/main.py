@@ -165,7 +165,6 @@ class Laser(pygame.sprite.Sprite):
         if self.rect.right < 0 or self.rect.left > screen_width:
             self.kill()  # Remove the laser if it goes off-screen
 
-
 class Monster(pygame.sprite.Sprite):
     def __init__(self, image_paths, x, scale, speed):
         pygame.sprite.Sprite.__init__(self)
