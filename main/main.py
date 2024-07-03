@@ -249,6 +249,17 @@ class Monster(pygame.sprite.Sprite):
         else:
             self.collided = False
 
+        if self.rect.left < 0:
+            self.rect.left = 0
+        if self.rect.right > screen_width:
+            self.rect.right = screen_width
+        if self.rect.top < 0:
+            self.rect.top = 0
+        if self.rect.bottom > screen_height:
+            self.rect.bottom = screen_height
+            self.vel_y = 0
+            self.on_ground = True
+
         return dx  # Return the amount of horizontal movement
 
     def update_animation(self):
@@ -300,17 +311,13 @@ while running:
                 player.jump = True
             elif event.key == pygame.K_j:  # Left Control key to shoot
                 direction = player.direction
-                laser = Laser(player.rect.centerx + (direction * player.rect.width // 2), player.rect.centery, direction)
+                laser = Laser(player.rect.centerx + (direction * player.rect.width), player.rect.centery, direction)
                 laser_group.add(laser)
         elif event.type == pygame.KEYUP:
             if event.key == pygame.K_a:
                 moving_left = False
             elif event.key == pygame.K_d:
                 moving_right = False
-            elif event.key == pygame.K_j:  # Left Control key to shoot
-                direction = player.direction
-                laser = Laser(player.rect.centerx + (direction * player.rect.width // 2), player.rect.centery, direction)
-                laser_group.add(laser)
 
     # Clear the screen
     screen.fill((0, 128, 255))
