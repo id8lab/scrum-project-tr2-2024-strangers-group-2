@@ -298,7 +298,7 @@ while running:
                 moving_right = True
             elif event.key == pygame.K_w:
                 player.jump = True
-            elif event.key == pygame.K_LCTRL:  # Left Control key to shoot
+            elif event.key == pygame.K_j:  # Left Control key to shoot
                 direction = player.direction
                 laser = Laser(player.rect.centerx + (direction * player.rect.width // 2), player.rect.centery, direction)
                 laser_group.add(laser)
@@ -307,6 +307,10 @@ while running:
                 moving_left = False
             elif event.key == pygame.K_d:
                 moving_right = False
+            elif event.key == pygame.K_j:  # Left Control key to shoot
+                direction = player.direction
+                laser = Laser(player.rect.centerx + (direction * player.rect.width // 2), player.rect.centery, direction)
+                laser_group.add(laser)
 
     # Clear the screen
     screen.fill((0, 128, 255))
@@ -363,6 +367,9 @@ while running:
 
         # Draw the player
         player.draw(screen, scroll)
+
+        laser_group.update(screen_width)
+        laser_group.draw(screen)
 
         # Draw HUD elements
         draw_time()
