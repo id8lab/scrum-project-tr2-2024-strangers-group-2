@@ -1,5 +1,6 @@
 import pygame
 import sys
+import os 
 import csv
 import button
 
@@ -27,7 +28,7 @@ for row in range(ROWS):
     world_data.append(r)
 
 #load in level data and create world
-with open(f'level{level}_data.csv', newline='') as csvfile:
+with open(f'C:/Users/ADMIN/Downloads/scrum-project-tr2-2024-strangers-group-2-5/main/level{level}_data.csv', newline='') as csvfile:
     reader = csv.reader(csvfile, delimiter=',')
     for x, row in enumerate(reader):
         for y, tile in enumerate(row):
@@ -149,6 +150,21 @@ class World():
             tile_rect = tile.move(scroll, 0)
             pygame.draw.rect(screen, (144, 201, 120), tile_rect)
             pygame.draw.rect(screen, (0, 0, 0), tile_rect, 2)
+
+class Laser(pygame.sprite.Sprite):
+    def __init__(self, x, y, direction):
+        pygame.sprite.Sprite.__init__(self)
+        self.image = pygame.Surface((10, 2))
+        self.image.fill((255, 0, 0))  # Red laser
+        self.rect = self.image.get_rect()
+        self.rect.center = (x, y)
+        self.speed = 10 * direction
+
+    def update(self, screen_width):
+        self.rect.x += self.speed
+        if self.rect.right < 0 or self.rect.left > screen_width:
+            self.kill()  # Remove the laser if it goes off-screen
+
 
 class Monster(pygame.sprite.Sprite):
     def __init__(self, image_paths, x, scale, speed):
