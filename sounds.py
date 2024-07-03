@@ -11,6 +11,10 @@ class Sounds:
         self.ui_sound = pygame.mixer.Sound(r"sounds\ui 1.wav")
         self.game_over_sound = pygame.mixer.Sound(r"sounds\game-over-arcade-6435.mp3")
         self.enemy_spawn_sound = pygame.mixer.Sound(r"sounds\enemyspawn.wav")
+        
+        self.bg_music = {
+            2: r"sounds\The Veil of Night.mp3",
+            1: r"sounds\Pixel 1.wav"}
 
     def play_jump_sound(self):
         self.jump_sound.play()
@@ -29,3 +33,16 @@ class Sounds:
 
     def play_enemy_spawn_sound(self):
         self.enemy_spawn_sound.play()
+
+    def play_bg_music_for_level(self, level):
+        pygame.mixer.music.load(self.bg_music[level])
+        pygame.mixer.music.play(-1)
+        
+    def stop_bg_music(self):
+        pygame.mixer.music.stop()
+
+    def pause_bg_music(self):
+        pygame.mixer.music.pause()
+
+    def unpause_bg_music(self):
+        pygame.mixer.music.unpause()
