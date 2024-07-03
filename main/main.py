@@ -286,7 +286,6 @@ running = True
 scroll = 0
 scroll_speed = 5
 while running:
-
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
@@ -299,6 +298,10 @@ while running:
                 moving_right = True
             elif event.key == pygame.K_w:
                 player.jump = True
+            elif event.key == pygame.K_LCTRL:  # Left Control key to shoot
+                direction = player.direction
+                laser = Laser(player.rect.centerx + (direction * player.rect.width // 2), player.rect.centery, direction)
+                laser_group.add(laser)
         elif event.type == pygame.KEYUP:
             if event.key == pygame.K_a:
                 moving_left = False
@@ -310,7 +313,6 @@ while running:
 
     if game_paused:
         if menu_state == "main":
-            # Draw main menu buttons
             if resume_button.draw(screen):
                 game_paused = False
             if options_button.draw(screen):
@@ -318,7 +320,6 @@ while running:
             if quit_button.draw(screen):
                 running = False
         elif menu_state == "options":
-            # Draw options menu buttons
             if video_button.draw(screen):
                 pass  # Placeholder for video settings action
             if audio_button.draw(screen):
@@ -328,7 +329,6 @@ while running:
             if back_button.draw(screen):
                 menu_state = "main"
     else:
-        # Draw game elements when not paused
         draw_text("Press SPACE to pause", font, TEXT_COL, 412, 375)
 
         # Move the player
