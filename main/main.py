@@ -21,6 +21,9 @@ screen_height = 700
 screen = pygame.display.set_mode((screen_width, screen_height))
 pygame.display.set_caption('Pygame Screen')
 
+# Create a laser group
+laser_group = pygame.sprite.Group()
+
 #create empty tile list
 world_data = []
 for row in range(ROWS):
