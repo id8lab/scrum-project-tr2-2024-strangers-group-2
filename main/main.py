@@ -356,18 +356,19 @@ while running:
         if player.rect.top > screen_height:
             game_over = True
 
-        # Adjust scroll to keep player in fixed position
-        if moving_right:
-            scroll -= scroll_speed
-        if moving_left:
-            scroll += scroll_speed
+        if not game_over:
+            # Adjust scroll to keep player in fixed position
+            if moving_right:
+                scroll -= scroll_speed
+            if moving_left:
+                scroll += scroll_speed
 
-        # Prevent scrolling beyond the world's bounds
-        max_scroll = -TILE_SIZE * (COLS - screen_width // TILE_SIZE)
-        if scroll < max_scroll:
-            scroll = max_scroll
-        elif scroll > 0:
-            scroll = 0
+            # Prevent scrolling beyond the world's bounds
+            max_scroll = -TILE_SIZE * (COLS - screen_width // TILE_SIZE)
+            if scroll < max_scroll:
+                scroll = max_scroll
+            elif scroll > 0:
+                scroll = 0
 
         # Update background positions
         sky_x = scroll * 0.1 % screen_width
