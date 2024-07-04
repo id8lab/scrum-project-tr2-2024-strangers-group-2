@@ -17,7 +17,7 @@ level = 1
 
 # Set up the display
 screen_width = 1400
-screen_height = 700
+screen_height = 800
 screen = pygame.display.set_mode((screen_width, screen_height))
 pygame.display.set_caption('Pygame Screen')
 
@@ -61,7 +61,6 @@ back_button = button.Button(center_x - button_width // 2, 500, back_img, 1)
 
 # Game variables
 game_paused = False
-game_over = False
 menu_state = "main"
 
 # Helper function to draw text
@@ -288,18 +287,6 @@ scroll = 0
 scroll_speed = 5
 scroll_threshold = screen_width // 4
 
-def reset_game():
-    global game_over, player_lives, score, level, timer, world, player, laser_group
-    game_over = False
-    player_lives = 3
-    score = 0
-    level = 1
-    timer = 0
-    world = World()
-    world.process_data(world_data)
-    player = Monster(player_images, 200, 0.15, 5)
-    laser_group.empty()
-
 while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -343,32 +330,24 @@ while running:
                 pass  # Placeholder for key settings action
             if back_button.draw(screen):
                 menu_state = "main"
-    elif game_over:
-        draw_text("GAME OVER", font, TEXT_COL, 400, 300)
-        draw_text("Press SPACE to restart", font, TEXT_COL, 340, 350)
     else:
         draw_text("Press SPACE to pause", font, TEXT_COL, 412, 375)
 
         # Move the player
         dx = player.move(moving_left, moving_right)
         
-        # Check if player falls off the screen
-        if player.rect.top > screen_height:
-            game_over = True
+        # Adjust scroll to keep player in fixed position
+        if moving_right:
+            scroll -= scroll_speed
+        if moving_left:
+            scroll += scroll_speed
 
-        if not game_over:
-            # Adjust scroll to keep player in fixed position
-            if moving_right:
-                scroll -= scroll_speed
-            if moving_left:
-                scroll += scroll_speed
-
-            # Prevent scrolling beyond the world's bounds
-            max_scroll = -TILE_SIZE * (COLS - screen_width // TILE_SIZE)
-            if scroll < max_scroll:
-                scroll = max_scroll
-            elif scroll > 0:
-                scroll = 0
+        # Prevent scrolling beyond the world's bounds
+        max_scroll = -TILE_SIZE * (COLS - screen_width // TILE_SIZE)
+        if scroll < max_scroll:
+            scroll = max_scroll
+        elif scroll > 0:
+            scroll = 0
 
         # Update background positions
         sky_x = scroll * 0.1 % screen_width
