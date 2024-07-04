@@ -61,6 +61,7 @@ back_button = button.Button(center_x - button_width // 2, 500, back_img, 1)
 
 # Game variables
 game_paused = False
+game_over = False
 menu_state = "main"
 
 # Helper function to draw text
@@ -293,7 +294,17 @@ while running:
             running = False
         elif event.type == pygame.KEYDOWN:
             if event.key == pygame.K_SPACE:
-                game_paused = not game_paused  # Toggle pause state
+                if game_over:
+                    # Reset game variables
+                    game_over = False
+                    player.rect.x = 200  # Reset player position
+                    player.rect.y = screen_height - 70
+                    player_lives = 3
+                    score = 0
+                    level = 1
+                    # Reset any other variables or game states as needed
+                else:
+                    game_paused = not game_paused  # Toggle pause state or other actions
             elif event.key == pygame.K_a:
                 moving_left = True
             elif event.key == pygame.K_d:
@@ -309,6 +320,10 @@ while running:
                 moving_left = False
             elif event.key == pygame.K_d:
                 moving_right = False
+
+    # Game over logic
+    if player.rect.top > screen_height:
+        game_over = True
 
     # Clear the screen
     screen.fill((0, 128, 255))
