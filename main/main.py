@@ -61,7 +61,6 @@ back_button = button.Button(center_x - button_width // 2, 500, back_img, 1)
 
 # Game variables
 game_paused = False
-game_over = False
 menu_state = "main"
 
 # Helper function to draw text
@@ -287,7 +286,8 @@ running = True
 scroll = 0
 scroll_speed = 5
 scroll_threshold = screen_width // 4
-
+    
+game_over = False
 while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -302,6 +302,7 @@ while running:
                     player_lives = 3
                     score = 0
                     level = 1
+                    laser_group.empty()  # Clear any active lasers
                     # Reset any other variables or game states as needed
                 else:
                     game_paused = not game_paused  # Toggle pause state or other actions
@@ -345,8 +346,15 @@ while running:
                 pass  # Placeholder for key settings action
             if back_button.draw(screen):
                 menu_state = "main"
+    elif game_over:
+        # Display game over screen
+        screen.fill((0, 0, 0))  # Fill the screen with black
+        draw_text("GAME OVER", font, TEXT_COL, screen_width // 2 - 150, screen_height // 2 - 50)
+        draw_text("Press SPACE to restart", font, TEXT_COL, screen_width // 2 - 200, screen_height // 2 + 50)
     else:
-        draw_text("Press SPACE to pause", font, TEXT_COL, 412, 375)
+        # Draw gameplay elements
+        draw_text("Game in progress", font, TEXT_COL, 10, 10)
+        # Move player, update game state, draw other elements
 
         # Move the player
         dx = player.move(moving_left, moving_right)
