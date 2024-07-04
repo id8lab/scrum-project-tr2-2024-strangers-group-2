@@ -343,12 +343,19 @@ while running:
                 pass  # Placeholder for key settings action
             if back_button.draw(screen):
                 menu_state = "main"
+    elif game_over:
+        draw_text("GAME OVER", font, TEXT_COL, 400, 300)
+        draw_text("Press SPACE to restart", font, TEXT_COL, 340, 350)
     else:
         draw_text("Press SPACE to pause", font, TEXT_COL, 412, 375)
 
         # Move the player
         dx = player.move(moving_left, moving_right)
         
+        # Check if player falls off the screen
+        if player.rect.top > screen_height:
+            game_over = True
+
         # Adjust scroll to keep player in fixed position
         if moving_right:
             scroll -= scroll_speed
