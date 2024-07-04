@@ -61,6 +61,7 @@ back_button = button.Button(center_x - button_width // 2, 500, back_img, 1)
 
 # Game variables
 game_paused = False
+game_over = False
 menu_state = "main"
 
 # Helper function to draw text
@@ -248,18 +249,7 @@ class Monster(pygame.sprite.Sprite):
                 break
         else:
             self.collided = False
-
-        if self.rect.left < 0:
-            self.rect.left = 0
-        if self.rect.right > screen_width:
-            self.rect.right = screen_width
-        if self.rect.top < 0:
-            self.rect.top = 0
-        if self.rect.bottom > screen_height:
-            self.rect.bottom = screen_height
-            self.vel_y = 0
-            self.on_ground = True
-
+        
         return dx  # Return the amount of horizontal movement
 
     def update_animation(self):
@@ -296,6 +286,8 @@ moving_right = False
 running = True
 scroll = 0
 scroll_speed = 5
+scroll_threshold = screen_width // 4
+
 while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -345,19 +337,24 @@ while running:
         # Move the player
         dx = player.move(moving_left, moving_right)
         
-        # Update scroll
-        if not player.collided:
-            if moving_right:
-                scroll -= scroll_speed
-            if moving_left:
-                scroll += scroll_speed
+        # Adjust scroll to keep player within certain bounds
+        if player.rect.right > screen_width - scroll_threshold:
+            scroll -= scroll_speed
+        elif player.rect.left < scroll_threshold:
+            scroll += scroll_speed
+
+        # Prevent scrolling beyond the world's bounds
+        max_scroll = -TILE_SIZE * (COLS - screen_width // TILE_SIZE)
+        if scroll < max_scroll:
+            scroll = max_scroll
+        elif scroll > 0:
+            scroll = 0
 
         # Update background positions
-        if not player.collided:
-            sky_x = (sky_x - dx * 0.1) % screen_width
-            mountain_x = (mountain_x - dx * 0.2) % screen_width
-            pine1_x = (pine1_x - dx * 0.6) % screen_width
-            pine2_x = (pine2_x - dx * 0.8) % screen_width
+        sky_x = scroll * 0.1 % screen_width
+        mountain_x = scroll * 0.2 % screen_width
+        pine1_x = scroll * 0.6 % screen_width
+        pine2_x = scroll * 0.8 % screen_width
 
         # Draw the background images
         screen.blit(sky_cloud, (sky_x, 0))
