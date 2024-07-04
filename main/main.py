@@ -288,6 +288,18 @@ scroll = 0
 scroll_speed = 5
 scroll_threshold = screen_width // 4
 
+def reset_game():
+    global game_over, player_lives, score, level, timer, world, player, laser_group
+    game_over = False
+    player_lives = 3
+    score = 0
+    level = 1
+    timer = 0
+    world = World()
+    world.process_data(world_data)
+    player = Monster(player_images, 200, 0.15, 5)
+    laser_group.empty()
+
 while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -337,10 +349,10 @@ while running:
         # Move the player
         dx = player.move(moving_left, moving_right)
         
-        # Adjust scroll to keep player within certain bounds
-        if player.rect.right > screen_width - scroll_threshold:
+        # Adjust scroll to keep player in fixed position
+        if moving_right:
             scroll -= scroll_speed
-        elif player.rect.left < scroll_threshold:
+        if moving_left:
             scroll += scroll_speed
 
         # Prevent scrolling beyond the world's bounds
