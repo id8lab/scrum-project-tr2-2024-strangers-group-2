@@ -1,7 +1,8 @@
 import pygame
 import sys
+import os 
 import csv
-from sounds import Sounds
+import button
 
 # Initialize Pygame
 pygame.init()
@@ -11,16 +12,17 @@ ROWS = 16
 COLS = 150
 TILE_SIZE = 50
 TILE_TYPES = 21
+TEXT_COL = (255, 255, 255) 
 level = 1
-
-# Create an instance for the Sounds class
-sounds = Sounds()
 
 # Set up the display
 screen_width = 1400
-screen_height = 700
+screen_height = 800
 screen = pygame.display.set_mode((screen_width, screen_height))
 pygame.display.set_caption('Pygame Screen')
+
+# Create a laser group
+laser_group = pygame.sprite.Group()
 
 #create empty tile list
 world_data = []
@@ -34,6 +36,37 @@ with open(f'level{level}_data.csv', newline='') as csvfile:
     for x, row in enumerate(reader):
         for y, tile in enumerate(row):
             world_data[x][y] = int(tile)
+
+# Ensure your path is correct for your button images
+resume_img = pygame.image.load("images/button_resume.png").convert_alpha()
+options_img = pygame.image.load("images/button_options.png").convert_alpha()
+quit_img = pygame.image.load("images/button_quit.png").convert_alpha()
+video_img = pygame.image.load("images/button_video.png").convert_alpha()
+audio_img = pygame.image.load("images/button_audio.png").convert_alpha()
+keys_img = pygame.image.load("images/button_keys.png").convert_alpha()
+back_img = pygame.image.load("images/button_back.png").convert_alpha()
+
+# Calculate center x-coordinate for buttons
+button_width = resume_img.get_width()  # Assuming all buttons have the same width
+center_x = screen_width // 2
+
+# Create button instances
+resume_button = button.Button(center_x - button_width // 2, 200, resume_img, 1)
+options_button = button.Button(center_x - button_width // 2, 300, options_img, 1)
+quit_button = button.Button(center_x - button_width // 2, 400, quit_img, 1)
+video_button = button.Button(center_x - button_width // 2, 200, video_img, 1)
+audio_button = button.Button(center_x - button_width // 2, 300, audio_img, 1)
+keys_button = button.Button(center_x - button_width // 2, 400, keys_img, 1)
+back_button = button.Button(center_x - button_width // 2, 500, back_img, 1)
+
+# Game variables
+game_paused = False
+menu_state = "main"
+
+# Helper function to draw text
+def draw_text(text, font, color, x, y):
+    text_surface = font.render(text, True, color)
+    screen.blit(text_surface, (x, y))
 
 # Load images
 sky_cloud = pygame.image.load('img_background/sky_cloud.png').convert_alpha()
@@ -121,11 +154,26 @@ class World():
             pygame.draw.rect(screen, (144, 201, 120), tile_rect)
             pygame.draw.rect(screen, (0, 0, 0), tile_rect, 2)
 
+class Laser(pygame.sprite.Sprite):
+    def __init__(self, x, y, direction):
+        pygame.sprite.Sprite.__init__(self)
+        self.image = pygame.Surface((10, 2))
+        self.image.fill((255, 0, 0))  # Red laser
+        self.rect = self.image.get_rect()
+        self.rect.center = (x, y)
+        self.speed = 10 * direction
+
+    def update(self, screen_width):
+        self.rect.x += self.speed
+        if self.rect.right < 0 or self.rect.left > screen_width:
+            self.kill()  # Remove the laser if it goes off-screen
+
 class Monster(pygame.sprite.Sprite):
     def __init__(self, image_paths, x, scale, speed):
         pygame.sprite.Sprite.__init__(self)
         self.speed = speed
         self.direction = 1
+        self.on_ground = True  
         self.jump = False
         self.vel_y = 0
         self.flip = False
@@ -166,9 +214,10 @@ class Monster(pygame.sprite.Sprite):
             self.flip = False
             self.direction = 1
 
-        if self.jump:
-            self.vel_y = -11
+        if self.jump and self.on_ground:
+            self.vel_y = -13
             self.jump = False
+            self.on_ground = False
 
         self.vel_y += 0.75  # GRAVITY
 
@@ -188,6 +237,7 @@ class Monster(pygame.sprite.Sprite):
                 if dy > 0:
                     self.rect.bottom = tile.top
                     self.vel_y = 0
+                    self.on_ground = True
                 if dy < 0:
                     self.rect.top = tile.bottom
 
@@ -198,7 +248,7 @@ class Monster(pygame.sprite.Sprite):
                 break
         else:
             self.collided = False
-
+        
         return dx  # Return the amount of horizontal movement
 
     def update_animation(self):
@@ -235,77 +285,124 @@ moving_right = False
 running = True
 scroll = 0
 scroll_speed = 5
+scroll_threshold = screen_width // 4
+    
+game_over = False
 while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
-        # button press
-        if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_a:
+        elif event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_SPACE:
+                if game_over:
+                    # Reset game variables
+                    game_over = False
+                    player.rect.x = 200  # Reset player position
+                    player.rect.y = screen_height - 70
+                    player_lives = 3
+                    score = 0
+                    level = 1
+                    laser_group.empty()  # Clear any active lasers
+                    # Reset any other variables or game states as needed
+                else:
+                    game_paused = not game_paused  # Toggle pause state or other actions
+            elif event.key == pygame.K_a:
                 moving_left = True
-            if event.key == pygame.K_d:
+            elif event.key == pygame.K_d:
                 moving_right = True
-            if event.key == pygame.K_w:
+            elif event.key == pygame.K_w:
                 player.jump = True
-                sounds.play_jump_sound()
-            if event.key == pygame.K_ESCAPE:
-                running = False
-        # button release
-        if event.type == pygame.KEYUP:
+            elif event.key == pygame.K_j:  # Left Control key to shoot
+                direction = player.direction
+                laser = Laser(player.rect.centerx + (direction * player.rect.width), player.rect.centery, direction)
+                laser_group.add(laser)
+        elif event.type == pygame.KEYUP:
             if event.key == pygame.K_a:
                 moving_left = False
-            if event.key == pygame.K_d:
+            elif event.key == pygame.K_d:
                 moving_right = False
-    
-    # Increment timer
-    timer += clock.get_time() / 1000  # Convert milliseconds to seconds
-    
-    # Fill the screen with a color (RGB format)
+
+    # Game over logic
+    if player.rect.top > screen_height:
+        game_over = True
+
+    # Clear the screen
     screen.fill((0, 128, 255))
-    
-    # Move the player
-    dx = player.move(moving_left, moving_right)
-    
-    # Update scroll
-    if not player.collided:
+
+    if game_paused:
+        if menu_state == "main":
+            if resume_button.draw(screen):
+                game_paused = False
+            if options_button.draw(screen):
+                menu_state = "options"
+            if quit_button.draw(screen):
+                running = False
+        elif menu_state == "options":
+            if video_button.draw(screen):
+                pass  # Placeholder for video settings action
+            if audio_button.draw(screen):
+                pass  # Placeholder for audio settings action
+            if keys_button.draw(screen):
+                pass  # Placeholder for key settings action
+            if back_button.draw(screen):
+                menu_state = "main"
+    elif game_over:
+        # Display game over screen
+        screen.fill((0, 0, 0))  # Fill the screen with black
+        draw_text("GAME OVER", font, TEXT_COL, screen_width // 2 - 150, screen_height // 2 - 50)
+        draw_text("Press SPACE to restart", font, TEXT_COL, screen_width // 2 - 200, screen_height // 2 + 50)
+    else:
+        # Draw gameplay elements
+        draw_text("Game in progress", font, TEXT_COL, 10, 10)
+        # Move player, update game state, draw other elements
+
+        # Move the player
+        dx = player.move(moving_left, moving_right)
+        
+        # Adjust scroll to keep player in fixed position
         if moving_right:
             scroll -= scroll_speed
         if moving_left:
             scroll += scroll_speed
 
-    # Update background positions
-    if not player.collided:
-        sky_x = (sky_x - dx * 0.1) % screen_width
-        mountain_x = (mountain_x - dx * 0.2) % screen_width
-        pine1_x = (pine1_x - dx * 0.6) % screen_width
-        pine2_x = (pine2_x - dx * 0.8) % screen_width
+        # Prevent scrolling beyond the world's bounds
+        max_scroll = -TILE_SIZE * (COLS - screen_width // TILE_SIZE)
+        if scroll < max_scroll:
+            scroll = max_scroll
+        elif scroll > 0:
+            scroll = 0
 
-    # Draw the background images
-    screen.blit(sky_cloud, (sky_x, 0))
-    screen.blit(sky_cloud, (sky_x - screen_width, 0))
-    screen.blit(mountain, (mountain_x, screen_height - mountain_height))
-    screen.blit(mountain, (mountain_x - screen_width, screen_height - mountain_height))
-    screen.blit(pine1, (pine1_x, screen_height - pine_height))
-    screen.blit(pine1, (pine1_x - screen_width, screen_height - pine_height))
-    screen.blit(pine2, (pine2_x, screen_height - pine_height))
-    screen.blit(pine2, (pine2_x - screen_width, screen_height - pine_height))
-    
-    # Draw the world
-    world.draw(screen, scroll)
+        # Update background positions
+        sky_x = scroll * 0.1 % screen_width
+        mountain_x = scroll * 0.2 % screen_width
+        pine1_x = scroll * 0.6 % screen_width
+        pine2_x = scroll * 0.8 % screen_width
 
-    # Draw the player
-    player.draw(screen, scroll)
+        # Draw the background images
+        screen.blit(sky_cloud, (sky_x, 0))
+        screen.blit(sky_cloud, (sky_x - screen_width, 0))
+        screen.blit(mountain, (mountain_x, screen_height - mountain_height))
+        screen.blit(mountain, (mountain_x - screen_width, screen_height - mountain_height))
+        screen.blit(pine1, (pine1_x, screen_height - pine_height))
+        screen.blit(pine1, (pine1_x - screen_width, screen_height - pine_height))
+        screen.blit(pine2, (pine2_x, screen_height - pine_height))
+        screen.blit(pine2, (pine2_x - screen_width, screen_height - pine_height))
+        
+        # Draw the world
+        world.draw(screen, scroll)
 
-    # Draw HUD elements
-    draw_time()
-    draw_score()
-    draw_level()
-    draw_lives()
+        # Draw the player
+        player.draw(screen, scroll)
+
+        laser_group.update(screen_width)
+        laser_group.draw(screen)
+
+        # Draw HUD elements
+        draw_time()
+        draw_score()
+        draw_level()
+        draw_lives()
 
     # Update display
     pygame.display.update()
     clock.tick(60)
-
-pygame.quit()
-sys.exit()
-
