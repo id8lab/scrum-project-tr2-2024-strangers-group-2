@@ -1,18 +1,18 @@
 import pygame
 import sys
-import os 
+import os
 import csv
 import button
 
 # Initialize Pygame
 pygame.init()
 
-#define game variables
+# define game variables
 ROWS = 16
 COLS = 150
 TILE_SIZE = 50
 TILE_TYPES = 21
-TEXT_COL = (255, 255, 255) 
+TEXT_COL = (255, 255, 255)
 level = 1
 
 # Set up the display
@@ -24,27 +24,35 @@ pygame.display.set_caption('Pygame Screen')
 # Create a laser group
 laser_group = pygame.sprite.Group()
 
-#create empty tile list
+# create empty tile list
 world_data = []
 for row in range(ROWS):
     r = [-1] * COLS
     world_data.append(r)
 
-#load in level data and create world
-with open(f'C:/Users/ADMIN/Downloads/scrum-project-tr2-2024-strangers-group-2-5/main/level{level}_data.csv', newline='') as csvfile:
+# load in level data and create world
+with open(f'C:/Users/ADMIN/Downloads/scrum-project-tr2-2024-strangers-group-2-5/main/level{level}_data.csv',
+          newline='') as csvfile:
     reader = csv.reader(csvfile, delimiter=',')
     for x, row in enumerate(reader):
         for y, tile in enumerate(row):
             world_data[x][y] = int(tile)
 
 # Ensure your path is correct for your button images
-resume_img = pygame.image.load("C:/Users/ADMIN/Downloads/scrum-project-tr2-2024-strangers-group-2-5/Setting_page/images/button_resume.png").convert_alpha()
-options_img = pygame.image.load("C:/Users/ADMIN/Downloads/scrum-project-tr2-2024-strangers-group-2-5/Setting_page/images/button_options.png").convert_alpha()
-quit_img = pygame.image.load("C:/Users/ADMIN/Downloads/scrum-project-tr2-2024-strangers-group-2-5/Setting_page/images/button_quit.png").convert_alpha()
-video_img = pygame.image.load("C:/Users/ADMIN/Downloads/scrum-project-tr2-2024-strangers-group-2-5/Setting_page/images/button_video.png").convert_alpha()
-audio_img = pygame.image.load("C:/Users/ADMIN/Downloads/scrum-project-tr2-2024-strangers-group-2-5/Setting_page/images/button_audio.png").convert_alpha()
-keys_img = pygame.image.load("C:/Users/ADMIN/Downloads/scrum-project-tr2-2024-strangers-group-2-5/Setting_page/images/button_keys.png").convert_alpha()
-back_img = pygame.image.load("C:/Users/ADMIN/Downloads/scrum-project-tr2-2024-strangers-group-2-5/Setting_page/images/button_back.png").convert_alpha()
+resume_img = pygame.image.load(
+    "C:/Users/ADMIN/Downloads/scrum-project-tr2-2024-strangers-group-2-5/Setting_page/images/button_resume.png").convert_alpha()
+options_img = pygame.image.load(
+    "C:/Users/ADMIN/Downloads/scrum-project-tr2-2024-strangers-group-2-5/Setting_page/images/button_options.png").convert_alpha()
+quit_img = pygame.image.load(
+    "C:/Users/ADMIN/Downloads/scrum-project-tr2-2024-strangers-group-2-5/Setting_page/images/button_quit.png").convert_alpha()
+video_img = pygame.image.load(
+    "C:/Users/ADMIN/Downloads/scrum-project-tr2-2024-strangers-group-2-5/Setting_page/images/button_video.png").convert_alpha()
+audio_img = pygame.image.load(
+    "C:/Users/ADMIN/Downloads/scrum-project-tr2-2024-strangers-group-2-5/Setting_page/images/button_audio.png").convert_alpha()
+keys_img = pygame.image.load(
+    "C:/Users/ADMIN/Downloads/scrum-project-tr2-2024-strangers-group-2-5/Setting_page/images/button_keys.png").convert_alpha()
+back_img = pygame.image.load(
+    "C:/Users/ADMIN/Downloads/scrum-project-tr2-2024-strangers-group-2-5/Setting_page/images/button_back.png").convert_alpha()
 
 # Calculate center x-coordinate for buttons
 button_width = resume_img.get_width()  # Assuming all buttons have the same width
@@ -63,17 +71,24 @@ back_button = button.Button(center_x - button_width // 2, 500, back_img, 1)
 game_paused = False
 menu_state = "main"
 
+
 # Helper function to draw text
 def draw_text(text, font, color, x, y):
     text_surface = font.render(text, True, color)
     screen.blit(text_surface, (x, y))
 
+
 # Load images
-sky_cloud = pygame.image.load('C:/Users/ADMIN/Downloads/scrum-project-tr2-2024-strangers-group-2-5/img_background/sky_cloud.png').convert_alpha()
-mountain = pygame.image.load('C:/Users/ADMIN/Downloads/scrum-project-tr2-2024-strangers-group-2-5/img_background/mountain.png').convert_alpha()
-pine1 = pygame.image.load('C:/Users/ADMIN/Downloads/scrum-project-tr2-2024-strangers-group-2-5/img_background/pine1.png').convert_alpha()
-pine2 = pygame.image.load('C:/Users/ADMIN/Downloads/scrum-project-tr2-2024-strangers-group-2-5/img_background/pine2.png').convert_alpha()
-heart_image = pygame.image.load('C:/Users/ADMIN/Downloads/scrum-project-tr2-2024-strangers-group-2-5/img_element/minecraft-story-mode-pixel-art-video-games-minecraft-heart-removebg-preview.png').convert_alpha()
+sky_cloud = pygame.image.load(
+    'C:/Users/ADMIN/Downloads/scrum-project-tr2-2024-strangers-group-2-5/img_background/sky_cloud.png').convert_alpha()
+mountain = pygame.image.load(
+    'C:/Users/ADMIN/Downloads/scrum-project-tr2-2024-strangers-group-2-5/img_background/mountain.png').convert_alpha()
+pine1 = pygame.image.load(
+    'C:/Users/ADMIN/Downloads/scrum-project-tr2-2024-strangers-group-2-5/img_background/pine1.png').convert_alpha()
+pine2 = pygame.image.load(
+    'C:/Users/ADMIN/Downloads/scrum-project-tr2-2024-strangers-group-2-5/img_background/pine2.png').convert_alpha()
+heart_image = pygame.image.load(
+    'C:/Users/ADMIN/Downloads/scrum-project-tr2-2024-strangers-group-2-5/img_element/minecraft-story-mode-pixel-art-video-games-minecraft-heart-removebg-preview.png').convert_alpha()
 
 # Define new heights for sky
 sky_height = screen_height // 1.5  # Adjust this value as needed
@@ -106,23 +121,28 @@ mountain_x = 0
 pine1_x = 0
 pine2_x = 0
 
+
 # Function to draw time
 def draw_time():
     minutes = int(timer) // 60
     seconds = int(timer) % 60
     timer_text = font.render(f'{minutes:02}:{seconds:02}', True, WHITE)
-    screen.blit(timer_text, (screen_width - timer_text.get_width() - 10, screen_height - timer_text.get_height() - 10))  # Bottom right corner
+    screen.blit(timer_text, (
+    screen_width - timer_text.get_width() - 10, screen_height - timer_text.get_height() - 10))  # Bottom right corner
+
 
 # Function to draw score
 def draw_score():
     score_text = font.render(f'Score: {score}', True, WHITE)
     screen.blit(score_text, (screen_width - score_text.get_width() - 10, 10))  # Top right corner
 
+
 # Function to draw level
 def draw_level():
     level_text = font.render(f'Level: {level}', True, WHITE)
     level_x = (screen_width - level_text.get_width()) // 2
     screen.blit(level_text, (level_x, 10))  # Top middle
+
 
 # Function to draw lives
 def draw_lives():
@@ -131,6 +151,7 @@ def draw_lives():
     heart_y = 10 + (lives_text.get_height() - heart_size[1]) // 2  # Center the hearts vertically
     for i in range(player_lives):
         screen.blit(heart_image, (lives_text.get_width() + 20 + i * (heart_size[0] + 10), heart_y))
+
 
 class World():
     def __init__(self):
@@ -154,6 +175,7 @@ class World():
             pygame.draw.rect(screen, (144, 201, 120), tile_rect)
             pygame.draw.rect(screen, (0, 0, 0), tile_rect, 2)
 
+
 class Laser(pygame.sprite.Sprite):
     def __init__(self, x, y, direction):
         pygame.sprite.Sprite.__init__(self)
@@ -168,12 +190,13 @@ class Laser(pygame.sprite.Sprite):
         if self.rect.right < 0 or self.rect.left > screen_width:
             self.kill()  # Remove the laser if it goes off-screen
 
+
 class Monster(pygame.sprite.Sprite):
     def __init__(self, image_paths, x, scale, speed):
         pygame.sprite.Sprite.__init__(self)
         self.speed = speed
         self.direction = 1
-        self.on_ground = True  
+        self.on_ground = True
         self.jump = False
         self.vel_y = 0
         self.flip = False
@@ -190,7 +213,7 @@ class Monster(pygame.sprite.Sprite):
             image = pygame.image.load(image_path)
             image = pygame.transform.scale(image, (common_width, common_height))
             self.animation_list.append(image)
-        
+
         self.image = self.animation_list[self.index]
         self.rect = self.image.get_rect()
         self.rect.center = (x, screen_height - 70)
@@ -221,7 +244,7 @@ class Monster(pygame.sprite.Sprite):
 
         self.vel_y += 0.75  # GRAVITY
 
-        dy += self.vel_y 
+        dy += self.vel_y
 
         # Check for ground collision
         self.rect.x += dx
@@ -248,7 +271,7 @@ class Monster(pygame.sprite.Sprite):
                 break
         else:
             self.collided = False
-        
+
         return dx  # Return the amount of horizontal movement
 
     def update_animation(self):
@@ -264,9 +287,10 @@ class Monster(pygame.sprite.Sprite):
         rect_with_scroll = self.rect.move(scroll, 0)
         screen.blit(pygame.transform.flip(self.image, self.flip, False), rect_with_scroll)
 
+
 # Load player images
 player_images = [
-    r'C:/Users/ADMIN/Downloads/scrum-project-tr2-2024-strangers-group-2-5/img_character\Screenshot_2024-06-14_163851-removebg-preview.png', 
+    r'C:/Users/ADMIN/Downloads/scrum-project-tr2-2024-strangers-group-2-5/img_character\Screenshot_2024-06-14_163851-removebg-preview.png',
     r'C:/Users/ADMIN/Downloads/scrum-project-tr2-2024-strangers-group-2-5/img_character\Screenshot_2024-06-14_164717-removebg-preview.png',
     r'C:/Users/ADMIN/Downloads/scrum-project-tr2-2024-strangers-group-2-5/img_character\Screenshot_2024-06-14_164033-removebg-preview.png',
     r'C:/Users/ADMIN/Downloads/scrum-project-tr2-2024-strangers-group-2-5/img_character\Screenshot_2024-06-14_164605-removebg-preview.png',
@@ -286,7 +310,7 @@ running = True
 scroll = 0
 scroll_speed = 5
 scroll_threshold = screen_width // 4
-    
+
 game_over = False
 while running:
     for event in pygame.event.get():
@@ -358,7 +382,7 @@ while running:
 
         # Move the player
         dx = player.move(moving_left, moving_right)
-        
+
         # Adjust scroll to keep player in fixed position
         if moving_right:
             scroll -= scroll_speed
@@ -387,7 +411,7 @@ while running:
         screen.blit(pine1, (pine1_x - screen_width, screen_height - pine_height))
         screen.blit(pine2, (pine2_x, screen_height - pine_height))
         screen.blit(pine2, (pine2_x - screen_width, screen_height - pine_height))
-        
+
         # Draw the world
         world.draw(screen, scroll)
 
