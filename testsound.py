@@ -15,9 +15,9 @@ while running:
         if event.type == pygame.QUIT:
             running = False
         elif event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_SPACE:
+            if event.key == pygame.K_w:
                 jump_sound.play()
-            elif event.key == pygame.K_s:
+            elif event.key == pygame.K_j:
                 shoot_sound.play()
             elif event.key == pygame.K_h:
                 losehp_sound.play()
