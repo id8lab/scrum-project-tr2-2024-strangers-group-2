@@ -13,7 +13,8 @@ class Sounds:
         self.enemy_spawn_sound = pygame.mixer.Sound(r"sounds\enemyspawn.wav")
         
         self.bg_music = {
-            2: r"sounds\The Veil of Night.mp3",
+            3: r"sounds\arabic-desert-196240.mp3",
+            2: r"sounds\6- The Veil of Night.mp3",
             1: r"sounds\Pixel 1.wav"}
 
     def play_jump_sound(self):
