@@ -7,7 +7,6 @@ win_height = 400
 win_width = 900
 win = pygame.display.set_mode((win_width, win_height))
 
-
 # Load and Size Images
 stationary = pygame.image.load(os.path.join("Assets/Hero", "standing.png"))
 left = [pygame.image.load(os.path.join("Assets/Hero", "L1.png")),
@@ -65,8 +64,6 @@ music = pygame.mixer.music.load(os.path.join("Assets/Audio", "game-level.wav"))
 pop_sound = pygame.mixer.Sound(os.path.join("Assets/Audio", "pop.ogg"))
 pygame.mixer.music.play(-1)
 
-
-
 class Hero:
     def __init__(self, x, y):
         # Walk
@@ -89,11 +86,11 @@ class Hero:
         self.alive = True
 
     def move_hero(self, userInput):
-        if userInput[pygame.K_RIGHT] and self.x <= win_width - 62:
+        if userInput[pygame.K_d] and self.x <= win_width - 62:
             self.x += self.velx
             self.face_right = True
             self.face_left = False
-        elif userInput[pygame.K_LEFT] and self.x >= 0:
+        elif userInput[pygame.K_a] and self.x >= 0:
             self.x -= self.velx
             self.face_right = False
             self.face_left = True
@@ -115,7 +112,7 @@ class Hero:
             self.stepIndex += 1
 
     def jump_motion(self, userInput):
-        if userInput[pygame.K_SPACE] and self.jump is False:
+        if userInput[pygame.K_w] and self.jump is False:
             self.jump = True
         if self.jump:
             self.y -= self.vely * 4
@@ -139,7 +136,7 @@ class Hero:
     def shoot(self):
         self.hit()
         self.cooldown()
-        if (userInput[pygame.K_f] and self.cool_down_count == 0):
+        if userInput[pygame.K_j] and self.cool_down_count == 0:
             pop_sound.play()
             bullet = Bullet(self.x, self.y, self.direction())
             self.bullets.append(bullet)
@@ -156,7 +153,6 @@ class Hero:
                         enemy.hitbox[1] + enemy.hitbox[3]:
                     enemy.health -= 5
                     player.bullets.remove(bullet)
-
 
 class Bullet:
     def __init__(self, x, y, direction):
@@ -175,7 +171,6 @@ class Bullet:
 
     def off_screen(self):
         return not (self.x >= 0 and self.x <= win_width)
-
 
 class Enemy:
     def __init__(self, x, y, speed):
@@ -202,12 +197,10 @@ class Enemy:
 
     def move(self):
         self.hit()
-        self.x -= speed
-
+        self.x -= self.speed
 
     def hit(self):
-        if player.hitbox[0] < enemy.x + 32 < player.hitbox[0] + player.hitbox[2] and player.hitbox[1] < enemy.y + 32 < \
-                player.hitbox[1] + player.hitbox[3]:
+        if player.hitbox[0] < self.x + 32 < player.hitbox[0] + player.hitbox[2] and player.hitbox[1] < self.y + 32 < player.hitbox[1] + player.hitbox[3]:
             if player.health > 0:
                 player.health -= 1
                 if player.health == 0 and player.lives > 0:
@@ -218,7 +211,6 @@ class Enemy:
 
     def off_screen(self):
         return not (self.x >= -50 and self.x <= win_width + 50)
-
 
 # Draw Game
 def draw_game():
@@ -251,7 +243,6 @@ def draw_game():
     # Delay and Update
     pygame.time.delay(30)
     pygame.display.update()
-
 
 # Instance of Hero-Class
 player = Hero(250, 290)
@@ -291,7 +282,10 @@ while run:
         if enemy.off_screen() or enemy.health == 0:
             enemies.remove(enemy)
         if enemy.health == 0:
-            kills +=1
+            kills += 1
 
     # Draw Game in Window
     draw_game()
+
+pygame.quit()
+
