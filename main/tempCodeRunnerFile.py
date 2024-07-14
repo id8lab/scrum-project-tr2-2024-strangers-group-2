@@ -3,6 +3,7 @@ import sys
 import os 
 import csv
 import button
+import random
 
 # Initialize Pygame
 pygame.init()
@@ -17,7 +18,7 @@ level = 1
 
 # Set up the display
 screen_width = 1400
-screen_height = 700
+screen_height = 800
 screen = pygame.display.set_mode((screen_width, screen_height))
 pygame.display.set_caption('Pygame Screen')
 
@@ -167,6 +168,75 @@ class Laser(pygame.sprite.Sprite):
         self.rect.x += self.speed
         if self.rect.right < 0 or self.rect.left > screen_width:
             self.kill()  # Remove the laser if it goes off-screen
+
+class Enemy(pygame.sprite.Sprite):
+    def __init__(self, image_paths, x, y, scale, speed):
+        pygame.sprite.Sprite.__init__(self)
+        self.speed = speed
+        self.direction = 1
+        self.animation_list = []
+        self.index = 0
+        self.update_time = pygame.time.get_ticks()
+        self.flip = False
+
+        # Load the images and scale them
+        for image_path in image_paths:
+            image = pygame.image.load(image_path).convert_alpha()
+            width = int(image.get_width() * scale)
+            height = int(image.get_height() * scale)
+            image = pygame.transform.scale(image, (width, height))
+            self.animation_list.append(image)
+
+        self.image = self.animation_list[self.index]
+        self.rect = self.image.get_rect()
+        self.rect.center = (x, y)
+        self.move_counter = 0
+
+    def update(self):
+        self.move()
+        self.update_animation()
+
+    def move(self):
+        self.rect.x += self.direction * self.speed
+        self.move_counter += 1
+
+        # Change direction after moving a certain distance
+        if self.move_counter > 50:
+            self.direction *= -1
+            self.move_counter = 0
+            self.flip = not self.flip
+
+    def update_animation(self):
+        ANIMATION_COOLDOWN = 100  # milliseconds
+
+        # Update animation only
+        if pygame.time.get_ticks() - self.update_time > ANIMATION_COOLDOWN:
+            self.update_time = pygame.time.get_ticks()
+            self.index = (self.index + 1) % len(self.animation_list)
+            self.image = self.animation_list[self.index]
+
+    def draw(self, screen, scroll):
+        rect_with_scroll = self.rect.move(scroll, 0)
+        screen.blit(pygame.transform.flip(self.image, self.flip, False), rect_with_scroll)
+    
+def generate_enemies(image_paths, num_enemies, scale, speed):
+    enemies = pygame.sprite.Group()
+    for _ in range(num_enemies):
+        x = random.randint(0, COLS * TILE_SIZE)
+        y = screen_height - TILE_SIZE * 2  # Assume ground level for simplicity
+        enemy = Enemy(image_paths, x, y, scale, speed)
+        enemies.add(enemy)
+    return enemies
+
+enemy_images = [
+    r'C:/Users/ADMIN/Downloads/scrum-project-tr2-2024-strangers-group-2-5/img_character\Screenshot_2024-06-14_163851-removebg-preview.png', 
+    r'C:/Users/ADMIN/Downloads/scrum-project-tr2-2024-strangers-group-2-5/img_character\Screenshot_2024-06-14_164717-removebg-preview.png',
+    r'C:/Users/ADMIN/Downloads/scrum-project-tr2-2024-strangers-group-2-5/img_character\Screenshot_2024-06-14_164033-removebg-preview.png',
+    r'C:/Users/ADMIN/Downloads/scrum-project-tr2-2024-strangers-group-2-5/img_character\Screenshot_2024-06-14_164605-removebg-preview.png',
+    r'C:/Users/ADMIN/Downloads/scrum-project-tr2-2024-strangers-group-2-5/img_character\Screenshot_2024-06-14_164820-removebg-preview.png'
+]
+
+enemies = generate_enemies(enemy_images, 5, 0.15, 2)
 
 class Monster(pygame.sprite.Sprite):
     def __init__(self, image_paths, x, scale, speed):
@@ -370,6 +440,11 @@ while running:
 
         # Draw the player
         player.draw(screen, scroll)
+
+        # Update and draw enemies
+        enemies.update()
+        for enemy in enemies:
+            enemy.draw(screen, scroll)
 
         laser_group.update(screen_width)
         laser_group.draw(screen)
