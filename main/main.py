@@ -241,6 +241,13 @@ def generate_enemies(image_paths, num_enemies, scale, speed):
     for _ in range(num_enemies):
         x = random.randint(0, COLS * TILE_SIZE)
         y = screen_height - TILE_SIZE * 2  # Assume ground level for simplicity
+        
+        # Find the correct y-position based on the world data
+        for row in world_data[::-1]:  # Start from the bottom row
+            if row[x // TILE_SIZE] != -1:
+                y = world_data.index(row) * TILE_SIZE
+                break
+        
         enemy = Enemy(image_paths, x, y, scale, speed)
         enemies.add(enemy)
     return enemies
