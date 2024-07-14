@@ -178,8 +178,9 @@ class Enemy(pygame.sprite.Sprite):
         self.index = 0
         self.update_time = pygame.time.get_ticks()
         self.flip = False
+        self.on_ground = True  
+        self.vel_y = 0
 
-        # Load the images and scale them
         for image_path in image_paths:
             image = pygame.image.load(image_path).convert_alpha()
             width = int(image.get_width() * scale)
@@ -197,13 +198,29 @@ class Enemy(pygame.sprite.Sprite):
         self.update_animation()
 
     def move(self):
-        self.rect.x += self.direction * self.speed
-        self.move_counter += 1
+        dx = self.direction * self.speed
+        dy = self.vel_y
+        self.vel_y += 0.75  # GRAVITY
 
-        # Change direction after moving a certain distance
-        if self.move_counter > 50:
+        # Move the enemy
+        self.rect.x += dx
+        self.rect.y += dy
+
+        # Check for ground collision and adjust position
+        for tile in world.floor_list:
+            if tile.colliderect(self.rect):
+                if dy > 0:
+                    self.rect.bottom = tile.top
+                    self.vel_y = 0
+                    self.on_ground = True
+                elif dy < 0:
+                    self.rect.top = tile.bottom
+
+        # Change direction when hitting an obstacle or edge of platform
+        edge_x = self.rect.right if self.direction > 0 else self.rect.left
+        edge_y = self.rect.bottom + 1
+        if not any(tile.collidepoint(edge_x, edge_y) for tile in world.floor_list):
             self.direction *= -1
-            self.move_counter = 0
             self.flip = not self.flip
 
     def update_animation(self):
