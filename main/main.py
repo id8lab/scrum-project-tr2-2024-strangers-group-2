@@ -170,7 +170,7 @@ class Laser(pygame.sprite.Sprite):
             self.kill()  # Remove the laser if it goes off-screen
 
 class Enemy(pygame.sprite.Sprite):
-    def __init__(self, image_paths, x, y, scale, speed):
+    def __init__(self, image_paths, x, y, common_width, common_height, speed):
         pygame.sprite.Sprite.__init__(self)
         self.speed = speed
         self.direction = 1
@@ -181,11 +181,10 @@ class Enemy(pygame.sprite.Sprite):
         self.on_ground = True  
         self.vel_y = 0
 
+        # Load the images and scale them to the common size
         for image_path in image_paths:
             image = pygame.image.load(image_path).convert_alpha()
-            width = int(image.get_width() * scale)
-            height = int(image.get_height() * scale)
-            image = pygame.transform.scale(image, (width, height))
+            image = pygame.transform.scale(image, (common_width, common_height))
             self.animation_list.append(image)
 
         self.image = self.animation_list[self.index]
@@ -235,8 +234,8 @@ class Enemy(pygame.sprite.Sprite):
     def draw(self, screen, scroll):
         rect_with_scroll = self.rect.move(scroll, 0)
         screen.blit(pygame.transform.flip(self.image, self.flip, False), rect_with_scroll)
-    
-def generate_enemies(image_paths, num_enemies, scale, speed):
+
+def generate_enemies(image_paths, num_enemies, common_width, common_height, speed):
     enemies = pygame.sprite.Group()
     for _ in range(num_enemies):
         x = random.randint(0, COLS * TILE_SIZE)
@@ -248,10 +247,12 @@ def generate_enemies(image_paths, num_enemies, scale, speed):
                 y = world_data.index(row) * TILE_SIZE
                 break
         
-        enemy = Enemy(image_paths, x, y, scale, speed)
+        enemy = Enemy(image_paths, x, y, common_width, common_height, speed)
         enemies.add(enemy)
     return enemies
 
+common_width = 64
+common_height = 64
 enemy_images = [
     r'C:/Users/ADMIN/Downloads/scrum-project-tr2-2024-strangers-group-2-5/img_character\Screenshot_2024-06-14_163851-removebg-preview.png', 
     r'C:/Users/ADMIN/Downloads/scrum-project-tr2-2024-strangers-group-2-5/img_character\Screenshot_2024-06-14_164717-removebg-preview.png',
@@ -260,7 +261,7 @@ enemy_images = [
     r'C:/Users/ADMIN/Downloads/scrum-project-tr2-2024-strangers-group-2-5/img_character\Screenshot_2024-06-14_164820-removebg-preview.png'
 ]
 
-enemies = generate_enemies(enemy_images, 5, 0.15, 2)
+enemies = generate_enemies(enemy_images, 5, common_width, common_height, 2)
 
 class Monster(pygame.sprite.Sprite):
     def __init__(self, image_paths, x, scale, speed):
