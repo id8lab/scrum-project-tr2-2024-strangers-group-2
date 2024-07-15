@@ -215,6 +215,18 @@ class Enemy(pygame.sprite.Sprite):
                 elif dy < 0:
                     self.rect.top = tile.bottom
 
+        # Check for collisions with blocks and change direction
+        for tile in world.floor_list:
+            if tile.colliderect(self.rect):
+                if dx > 0:
+                    self.rect.right = tile.left
+                    self.direction = -1
+                    self.flip = True
+                elif dx < 0:
+                    self.rect.left = tile.right
+                    self.direction = 1
+                    self.flip = False
+
         # Change direction when hitting an obstacle or edge of platform
         edge_x = self.rect.right if self.direction > 0 else self.rect.left
         edge_y = self.rect.bottom + 1
@@ -237,8 +249,11 @@ class Enemy(pygame.sprite.Sprite):
 
 def generate_enemies(image_paths, num_enemies, common_width, common_height, speed):
     enemies = pygame.sprite.Group()
-    for _ in range(num_enemies):
-        x = random.randint(0, COLS * TILE_SIZE)
+    segment_width = COLS * TILE_SIZE // num_enemies
+
+    for i in range(num_enemies):
+        # Compute the x-position for the enemy within its segment
+        x = i * segment_width + random.randint(0, segment_width - common_width)
         y = screen_height - TILE_SIZE * 2  # Assume ground level for simplicity
         
         # Find the correct y-position based on the world data
@@ -261,7 +276,7 @@ enemy_images = [
     r'C:/Users/ADMIN/Downloads/scrum-project-tr2-2024-strangers-group-2-5/img_character\Screenshot_2024-06-14_164820-removebg-preview.png'
 ]
 
-enemies = generate_enemies(enemy_images, 5, common_width, common_height, 2)
+enemies = generate_enemies(enemy_images, 10, common_width, common_height, 2)
 
 class Monster(pygame.sprite.Sprite):
     def __init__(self, image_paths, x, scale, speed):
