@@ -174,7 +174,7 @@ class Laser(pygame.sprite.Sprite):
 class Enemy(pygame.sprite.Sprite):
     def __init__(self, image_paths, x, y, common_width, common_height, speed):
         pygame.sprite.Sprite.__init__(self)
-        self.speed = speed
+        self.speed = 1
         self.direction = 1
         self.animation_list = []
         self.index = 0
@@ -182,7 +182,11 @@ class Enemy(pygame.sprite.Sprite):
         self.flip = False
         self.on_ground = True  
         self.vel_y = 0
-
+        self.detect_range = 300
+        self.detect_shoot = False
+        self.shoot_cooldown = 1000
+        self.last_shot_time = pygame.time.get_ticks()
+    
         # Load the images and scale them to the common size
         for image_path in image_paths:
             image = pygame.image.load(image_path).convert_alpha()
@@ -193,6 +197,24 @@ class Enemy(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.rect.center = (x, y)
         self.move_counter = 0
+
+    def detect_player(self, player_rect):
+        # Calculate distance between enemy and player
+        distance = abs(self.rect.centerx - player_rect.centerx)
+        if distance <= self.detect_range and (self.direction == 1 and self.rect.centerx < player_rect.centerx) or (self.direction == -1 and self.rect.centerx > player_rect.centerx):
+            self.can_shoot = True
+        else:
+            self.can_shoot = False
+
+    def shoot_laser(self, scroll):
+        current_time = pygame.time.get_ticks()
+        if self.can_shoot and current_time - self.last_shot_time > self.shoot_cooldown:
+            self.last_shot_time = current_time
+            laser = Laser(self, scroll)
+            laser_group.add(laser)
+
+    def resume_movement(self):
+        self.can_shoot = False
 
     def update(self):
         self.move()
@@ -450,6 +472,17 @@ while running:
         # Move the player
         dx = player.move(moving_left, moving_right)
         
+        # Detect player and handle shooting for each enemy
+        for enemy in enemies:
+            enemy.detect_player(player.rect)
+            enemy.shoot_laser(scroll)
+        
+        # Resume normal movement for enemies
+        for enemy in enemies:
+            if not enemy.can_shoot:
+                # Update enemy movement if not shooting
+                enemy.update()
+
         # Adjust scroll to keep player in fixed position
         if moving_right:
             scroll -= scroll_speed
