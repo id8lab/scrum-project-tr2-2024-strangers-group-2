@@ -156,13 +156,15 @@ class World():
             pygame.draw.rect(screen, (0, 0, 0), tile_rect, 2)
 
 class Laser(pygame.sprite.Sprite):
-    def __init__(self, x, y, direction):
+    def __init__(self, player, scroll):
         pygame.sprite.Sprite.__init__(self)
         self.image = pygame.Surface((10, 2))
         self.image.fill((255, 0, 0))  # Red laser
         self.rect = self.image.get_rect()
-        self.rect.center = (x, y)
-        self.speed = 10 * direction
+        self.player = player  # Reference to the player object
+        self.rect.centerx = self.player.rect.centerx+scroll  # Initialize laser's x-position to player's center x
+        self.rect.centery = self.player.rect.centery  # Initialize laser's y-position to player's center y
+        self.speed = 10 * self.player.direction  # Set speed based on player's facing direction
 
     def update(self, screen_width):
         self.rect.x += self.speed
@@ -414,7 +416,7 @@ while running:
                 player.jump = True
             elif event.key == pygame.K_j:  # Left Control key to shoot
                 direction = player.direction
-                laser = Laser(player.rect.centerx + (direction * player.rect.width), player.rect.centery, direction)
+                laser = Laser(player, scroll)
                 laser_group.add(laser)
         elif event.type == pygame.KEYUP:
             if event.key == pygame.K_a:
