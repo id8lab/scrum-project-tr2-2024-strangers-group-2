@@ -32,20 +32,20 @@ for row in range(ROWS):
     world_data.append(r)
 
 #load in level data and create world
-with open(f'C:/Users/ADMIN/Downloads/scrum-project-tr2-2024-strangers-group-2-5/main/level{level}_data.csv', newline='') as csvfile:
+with open(f'level{level}_data.csv', newline='') as csvfile:
     reader = csv.reader(csvfile, delimiter=',')
     for x, row in enumerate(reader):
         for y, tile in enumerate(row):
             world_data[x][y] = int(tile)
 
 # Ensure your path is correct for your button images
-resume_img = pygame.image.load("C:/Users/ADMIN/Downloads/scrum-project-tr2-2024-strangers-group-2-5/Setting_page/images/button_resume.png").convert_alpha()
-options_img = pygame.image.load("C:/Users/ADMIN/Downloads/scrum-project-tr2-2024-strangers-group-2-5/Setting_page/images/button_options.png").convert_alpha()
-quit_img = pygame.image.load("C:/Users/ADMIN/Downloads/scrum-project-tr2-2024-strangers-group-2-5/Setting_page/images/button_quit.png").convert_alpha()
-video_img = pygame.image.load("C:/Users/ADMIN/Downloads/scrum-project-tr2-2024-strangers-group-2-5/Setting_page/images/button_video.png").convert_alpha()
-audio_img = pygame.image.load("C:/Users/ADMIN/Downloads/scrum-project-tr2-2024-strangers-group-2-5/Setting_page/images/button_audio.png").convert_alpha()
-keys_img = pygame.image.load("C:/Users/ADMIN/Downloads/scrum-project-tr2-2024-strangers-group-2-5/Setting_page/images/button_keys.png").convert_alpha()
-back_img = pygame.image.load("C:/Users/ADMIN/Downloads/scrum-project-tr2-2024-strangers-group-2-5/Setting_page/images/button_back.png").convert_alpha()
+resume_img = pygame.image.load("images/button_resume.png").convert_alpha()
+options_img = pygame.image.load("images/button_options.png").convert_alpha()
+quit_img = pygame.image.load("images/button_quit.png").convert_alpha()
+video_img = pygame.image.load("images/button_video.png").convert_alpha()
+audio_img = pygame.image.load("images/button_audio.png").convert_alpha()
+keys_img = pygame.image.load("images/button_keys.png").convert_alpha()
+back_img = pygame.image.load("images/button_back.png").convert_alpha()
 
 # Calculate center x-coordinate for buttons
 button_width = resume_img.get_width()  # Assuming all buttons have the same width
@@ -70,11 +70,11 @@ def draw_text(text, font, color, x, y):
     screen.blit(text_surface, (x, y))
 
 # Load images
-sky_cloud = pygame.image.load('C:/Users/ADMIN/Downloads/scrum-project-tr2-2024-strangers-group-2-5/img_background/sky_cloud.png').convert_alpha()
-mountain = pygame.image.load('C:/Users/ADMIN/Downloads/scrum-project-tr2-2024-strangers-group-2-5/img_background/mountain.png').convert_alpha()
-pine1 = pygame.image.load('C:/Users/ADMIN/Downloads/scrum-project-tr2-2024-strangers-group-2-5/img_background/pine1.png').convert_alpha()
-pine2 = pygame.image.load('C:/Users/ADMIN/Downloads/scrum-project-tr2-2024-strangers-group-2-5/img_background/pine2.png').convert_alpha()
-heart_image = pygame.image.load('C:/Users/ADMIN/Downloads/scrum-project-tr2-2024-strangers-group-2-5/img_element/minecraft-story-mode-pixel-art-video-games-minecraft-heart-removebg-preview.png').convert_alpha()
+sky_cloud = pygame.image.load('img_background/sky_cloud.png').convert_alpha()
+mountain = pygame.image.load('img_background/mountain.png').convert_alpha()
+pine1 = pygame.image.load('img_background/pine1.png').convert_alpha()
+pine2 = pygame.image.load('img_background/pine2.png').convert_alpha()
+heart_image = pygame.image.load('img_element/minecraft-story-mode-pixel-art-video-games-minecraft-heart-removebg-preview.png').convert_alpha()
 
 # Define new heights for sky
 sky_height = screen_height // 1.5  # Adjust this value as needed
@@ -269,11 +269,13 @@ def generate_enemies(image_paths, num_enemies, common_width, common_height, spee
 common_width = 64
 common_height = 64
 enemy_images = [
-    r'C:/Users/ADMIN/Downloads/scrum-project-tr2-2024-strangers-group-2-5/img_character\Screenshot_2024-06-14_163851-removebg-preview.png', 
-    r'C:/Users/ADMIN/Downloads/scrum-project-tr2-2024-strangers-group-2-5/img_character\Screenshot_2024-06-14_164717-removebg-preview.png',
-    r'C:/Users/ADMIN/Downloads/scrum-project-tr2-2024-strangers-group-2-5/img_character\Screenshot_2024-06-14_164033-removebg-preview.png',
-    r'C:/Users/ADMIN/Downloads/scrum-project-tr2-2024-strangers-group-2-5/img_character\Screenshot_2024-06-14_164605-removebg-preview.png',
-    r'C:/Users/ADMIN/Downloads/scrum-project-tr2-2024-strangers-group-2-5/img_character\Screenshot_2024-06-14_164820-removebg-preview.png'
+    r'img_character/enemy_sprite1.png',
+    r'img_character/enemy_sprite2.png',
+    r'img_character/enemy_sprite3.png',
+    r'img_character/enemy_sprite4.png',
+    r'img_character/enemy_sprite5.png',
+    r'img_character/enemy_sprite6.png',
+    r'img_character/enemy_sprite7.png'
 ]
 
 enemies = generate_enemies(enemy_images, 10, common_width, common_height, 2)
@@ -376,11 +378,11 @@ class Monster(pygame.sprite.Sprite):
 
 # Load player images
 player_images = [
-    r'C:/Users/ADMIN/Downloads/scrum-project-tr2-2024-strangers-group-2-5/img_character\Screenshot_2024-06-14_163851-removebg-preview.png', 
-    r'C:/Users/ADMIN/Downloads/scrum-project-tr2-2024-strangers-group-2-5/img_character\Screenshot_2024-06-14_164717-removebg-preview.png',
-    r'C:/Users/ADMIN/Downloads/scrum-project-tr2-2024-strangers-group-2-5/img_character\Screenshot_2024-06-14_164033-removebg-preview.png',
-    r'C:/Users/ADMIN/Downloads/scrum-project-tr2-2024-strangers-group-2-5/img_character\Screenshot_2024-06-14_164605-removebg-preview.png',
-    r'C:/Users/ADMIN/Downloads/scrum-project-tr2-2024-strangers-group-2-5/img_character\Screenshot_2024-06-14_164820-removebg-preview.png'
+    r'img_character\Screenshot_2024-06-14_163851-removebg-preview.png', 
+    r'img_character\Screenshot_2024-06-14_164717-removebg-preview.png',
+    r'img_character\Screenshot_2024-06-14_164033-removebg-preview.png',
+    r'img_character\Screenshot_2024-06-14_164605-removebg-preview.png',
+    r'img_character\Screenshot_2024-06-14_164820-removebg-preview.png'
 ]
 
 player = Monster(player_images, 200, 0.15, 5)
