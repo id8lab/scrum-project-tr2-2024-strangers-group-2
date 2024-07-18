@@ -1,7 +1,12 @@
 import pygame
 import sys
+from sounds import Sounds
 
 pygame.init()
+
+sounds = Sounds()
+
+
 
 screen = pygame.display.set_mode((800, 600))
 
@@ -21,6 +26,19 @@ while running:
                 shoot_sound.play()
             elif event.key == pygame.K_h:
                 losehp_sound.play()
+            elif event.key == pygame.K_1:
+                sounds.play_bg_music_for_level(1)
+            elif event.key == pygame.K_2:
+                sounds.play_bg_music_for_level(2)
+            elif event.key == pygame.K_3:
+                sounds.play_bg_music_for_level(3)
+            elif event.key == pygame.K_p:
+                sounds.pause_bg_music()
+            elif event.key == pygame.K_u:
+                sounds.unpause_bg_music()
+            elif event.key == pygame.K_q:
+                running = False
+
 
     screen.fill((255, 255, 255))
 
