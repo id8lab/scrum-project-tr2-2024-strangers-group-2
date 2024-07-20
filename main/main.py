@@ -553,6 +553,8 @@ while running:
 
         laser_group.update(screen_width)
         laser_group.draw(screen)
+
+        player.check_collisions(laser_group)
         
 
         # Draw HUD elements
