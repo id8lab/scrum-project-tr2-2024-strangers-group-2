@@ -107,6 +107,10 @@ mountain_x = 0
 pine1_x = 0
 pine2_x = 0
 
+# Load sound effects
+shooting_sound = pygame.mixer.Sound('sounds/shooting.wav')
+jump_sound = pygame.mixer.Sound('sounds/jump.wav')
+
 # Function to draw time
 def draw_time():
     minutes = int(timer) // 60
@@ -125,7 +129,6 @@ def draw_level():
     level_x = (screen_width - level_text.get_width()) // 2
     screen.blit(level_text, (level_x, 10))  # Top middle
 
-# Function to draw lives
 def draw_lives():
     lives_text = font.render(f'Lives:', True, WHITE)
     screen.blit(lives_text, (10, 10))  # Top left corner
@@ -165,6 +168,7 @@ class Laser(pygame.sprite.Sprite):
         self.rect.centerx = self.player.rect.centerx+scroll  # Initialize laser's x-position to player's center x
         self.rect.centery = self.player.rect.centery  # Initialize laser's y-position to player's center y
         self.speed = 10 * self.player.direction  # Set speed based on player's facing direction
+        shooting_sound.play() # PLay shooting sound
 
     def update(self, screen_width):
         self.rect.x += self.speed
@@ -174,7 +178,7 @@ class Laser(pygame.sprite.Sprite):
 class Enemy(pygame.sprite.Sprite):
     def __init__(self, image_paths, x, y, common_width, common_height, speed):
         pygame.sprite.Sprite.__init__(self)
-        self.speed = 1
+        self.speed = speed
         self.direction = 1
         self.animation_list = []
         self.index = 0
@@ -186,7 +190,8 @@ class Enemy(pygame.sprite.Sprite):
         self.detect_shoot = False
         self.shoot_cooldown = 1000
         self.last_shot_time = pygame.time.get_ticks()
-    
+        self.hit_points = 0  # Track how many times the enemy has been hit
+
         # Load the images and scale them to the common size
         for image_path in image_paths:
             image = pygame.image.load(image_path).convert_alpha()
@@ -201,7 +206,15 @@ class Enemy(pygame.sprite.Sprite):
     def detect_player(self, player_rect):
         # Calculate distance between enemy and player
         distance = abs(self.rect.centerx - player_rect.centerx)
-        if distance <= self.detect_range and (self.direction == 1 and self.rect.centerx < player_rect.centerx) or (self.direction == -1 and self.rect.centerx > player_rect.centerx):
+        if distance <= self.detect_range:
+            self.can_shoot = True
+        else:
+            self.can_shoot = False
+
+        # Check player's position relative to enemy's direction
+        if self.direction == 1 and player_rect.centerx > self.rect.centerx:
+            self.can_shoot = True
+        elif self.direction == -1 and player_rect.centerx < self.rect.centerx:
             self.can_shoot = True
         else:
             self.can_shoot = False
@@ -212,6 +225,12 @@ class Enemy(pygame.sprite.Sprite):
             self.last_shot_time = current_time
             laser = Laser(self, scroll)
             laser_group.add(laser)
+            shooting_sound.play()  # Play shooting sound
+
+    def handle_hit(self):
+        self.hit_points += 1
+        if self.hit_points >= 3:
+            self.kill()  # Remove the enemy from the group if hit three times
 
     def resume_movement(self):
         self.can_shoot = False
@@ -387,6 +406,14 @@ class Monster(pygame.sprite.Sprite):
         
         return dx  # Return the amount of horizontal movement
 
+    def check_collisions(self, laser_group):
+        if pygame.sprite.spritecollide(self, laser_group, True):
+            global player_lives
+            player_lives -= 1
+            if player_lives <= 0:
+                # Handle game over logic here if necessary
+                pass
+
     def update_animation(self):
         ANIMATION_COOLDOWN = 100  # milliseconds
 
@@ -436,6 +463,7 @@ while running:
                 moving_right = True
             elif event.key == pygame.K_w:
                 player.jump = True
+                jump_sound.play()  # Play jump sound
             elif event.key == pygame.K_j:  # Left Control key to shoot
                 direction = player.direction
                 laser = Laser(player, scroll)
@@ -525,6 +553,7 @@ while running:
 
         laser_group.update(screen_width)
         laser_group.draw(screen)
+        
 
         # Draw HUD elements
         draw_time()
