@@ -46,6 +46,8 @@ video_img = pygame.image.load("images/button_video.png").convert_alpha()
 audio_img = pygame.image.load("images/button_audio.png").convert_alpha()
 keys_img = pygame.image.load("images/button_keys.png").convert_alpha()
 back_img = pygame.image.load("images/button_back.png").convert_alpha()
+restart_img = pygame.image.load("images/button_restart.png").convert_alpha()
+start_img = pygame.image.load("images/button_start.png").convert_alpha()
 
 # Calculate center x-coordinate for buttons
 button_width = resume_img.get_width()  # Assuming all buttons have the same width
@@ -59,10 +61,13 @@ video_button = button.Button(center_x - button_width // 2, 200, video_img, 1)
 audio_button = button.Button(center_x - button_width // 2, 300, audio_img, 1)
 keys_button = button.Button(center_x - button_width // 2, 400, keys_img, 1)
 back_button = button.Button(center_x - button_width // 2, 500, back_img, 1)
+restart_button = button.Button(center_x - button_width // 2, 500, restart_img, 1)
+start_button = button.Button(center_x - button_width // 2, 500, start_img, 1)
 
 # Game variables
 game_paused = False
 menu_state = "main"
+game_state = "start"
 
 # Helper function to draw text
 def draw_text(text, font, color, x, y):
@@ -110,6 +115,94 @@ pine2_x = 0
 # Load sound effects
 shooting_sound = pygame.mixer.Sound('sounds/shooting.wav')
 jump_sound = pygame.mixer.Sound('sounds/jump.wav')
+game_over_sound = pygame.mixer.Sound('sounds/game-over-arcade-6435.mp3')
+
+game_over_sound_flag = False
+
+# Game over screen
+def game_over_screen():
+
+    global game_over_sound_flag
+
+        # Fill screen with black
+    screen.fill((0,0,0))
+    
+    # Render game over text
+    game_over_text = font.render('Game Over', True, TEXT_COL)
+    screen.blit(game_over_text, ((screen_width - game_over_text.get_width()) // 2, (screen_height - game_over_text.get_height()) // 2))
+
+    if not game_over_sound_flag:
+        game_over_sound.play()
+        game_over_sound_flag = True
+
+    if restart_button.draw(screen):
+        restart_game()
+
+    # Update display
+    pygame.display.flip()
+
+
+# Game start screen
+def start_screen():
+
+    global running
+
+    screen.fill((0,0,0))
+    
+    game_title = font.render('Shoot the sprite', True, TEXT_COL)
+    screen.blit(game_title, ((screen_width - game_title.get_width()) // 2, (screen_height - game_title.get_height()) // 2))
+
+    if start_button.draw(screen):
+        start_game()
+    elif quit_button.draw(screen):
+        running = False
+    pygame.display.flip()
+
+def start_game():
+    global level, player_lives, score, timer, scroll, moving_left, moving_right, game_paused, menu_state
+
+    level = 1
+    player_lives = 3
+    score = 0
+    timer = 0
+    scroll = 0
+    moving_left = False
+    moving_right = False
+    game_paused = False
+    menu_state = "main"
+
+    # Clear any existing enemies and lasers
+    enemies.empty()
+    laser_group.empty()
+
+    # Generate new enemies for the new level
+    enemies.add(generate_enemies(enemy_images, 10, common_width, common_height, 2))
+
+    # Reset player position
+    player.rect.center = (200, screen_height - 70)
+    player.rect.x = 200
+    player.rect.y = screen_height - 70
+
+
+def restart_game():
+    global player_lives, score, game_over_sound_flag, scroll, moving_left, moving_right
+    player_lives = 3
+    score = 0
+    game_over_sound_flag = False
+    scroll = 0
+    moving_left = False
+    moving_right = False
+    player.rect.x = 200  # Reset player position
+    player.rect.y = 0
+    player.velocity_x = 0
+    player.velocity_y = 0
+    player.animation_state = "idle"  # Reset animation state
+    player.lives = 3  # Reset player lives
+    player.score = 0  # Reset player score
+    enemies.empty()  # Clear existing enemies
+    enemies.add(generate_enemies(enemy_images, 10, common_width, common_height, 2))  # Generate new enemies
+    laser_group.empty() 
+
 
 # Function to draw time
 def draw_time():
@@ -226,6 +319,7 @@ class Enemy(pygame.sprite.Sprite):
             laser = Laser(self, scroll)
             laser_group.add(laser)
             shooting_sound.play()  # Play shooting sound
+            # print('shoot!')
 
     def handle_hit(self):
         self.hit_points += 1
@@ -410,6 +504,7 @@ class Monster(pygame.sprite.Sprite):
         if pygame.sprite.spritecollide(self, laser_group, True):
             global player_lives
             player_lives -= 1
+            print("got hit!")
             if player_lives <= 0:
                 # Handle game over logic here if necessary
                 pass
@@ -451,6 +546,11 @@ scroll_speed = 5
 scroll_threshold = screen_width // 4
 
 while running:
+
+    # if game_state == "start":
+    #     start_screen()
+    # elif game_state == "play":
+
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
@@ -494,6 +594,10 @@ while running:
                 pass  # Placeholder for key settings action
             if back_button.draw(screen):
                 menu_state = "main"
+
+    elif player_lives <= 0:
+        game_over_screen()
+
     else:
         draw_text("Press SPACE to pause", font, TEXT_COL, 412, 375)
 
