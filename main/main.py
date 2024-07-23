@@ -48,6 +48,10 @@ keys_img = pygame.image.load("images/button_keys.png").convert_alpha()
 back_img = pygame.image.load("images/button_back.png").convert_alpha()
 restart_img = pygame.image.load("images/button_restart.png").convert_alpha()
 start_img = pygame.image.load("images/button_start.png").convert_alpha()
+mute_img = pygame.image.load("images/button_mute.png").convert_alpha()
+unmute_img = pygame.image.load("images/button_unmute.png").convert_alpha()
+windows_img = pygame.image.load("images/button_windows.png").convert_alpha()
+fullscreen_img = pygame.image.load("images/button_fullscreen.png").convert_alpha()
 
 # Calculate center x-coordinate for buttons
 button_width = resume_img.get_width()  # Assuming all buttons have the same width
@@ -63,6 +67,10 @@ keys_button = button.Button(center_x - button_width // 2, 400, keys_img, 1)
 back_button = button.Button(center_x - button_width // 2, 500, back_img, 1)
 restart_button = button.Button(center_x - button_width // 2, 500, restart_img, 1)
 start_button = button.Button(center_x - button_width // 2, 500, start_img, 1)
+mute_button = button.Button(center_x - button_width // 2, 300, mute_img, 1)
+unmute_button = button.Button(center_x - button_width // 2, 400, unmute_img, 1)
+windows_button = button.Button(center_x - button_width // 2, 300, windows_img, 1)
+fullscreen_button = button.Button(center_x - button_width // 2, 400, fullscreen_img, 1)
 
 # Game variables
 game_paused = False
@@ -122,9 +130,9 @@ game_over_sound_flag = False
 # Game over screen
 def game_over_screen():
 
-    global game_over_sound_flag
+    global game_over_sound_flag, running
 
-        # Fill screen with black
+    # Fill screen with black
     screen.fill((0,0,0))
     
     # Render game over text
@@ -135,8 +143,12 @@ def game_over_screen():
         game_over_sound.play()
         game_over_sound_flag = True
 
+    quit_button.rect.y = restart_button.rect.y + restart_button.image.get_height() + 20
+
     if restart_button.draw(screen):
         restart_game()
+    if quit_button.draw(screen):
+        running = False
 
     # Update display
     pygame.display.flip()
@@ -203,6 +215,34 @@ def restart_game():
     enemies.add(generate_enemies(enemy_images, 10, common_width, common_height, 2))  # Generate new enemies
     laser_group.empty() 
 
+def audio_settings():
+
+    global menu_state
+
+    if mute_button.draw(screen):
+        pygame.mixer.pause()
+        print("muted")
+    if unmute_button.draw(screen):
+        pygame.mixer.unpause()
+        print('unmuted')
+    if back_button.draw(screen):
+        menu_state = "options"
+        print("switch back to options")
+
+def video_settings():
+    global menu_state, screen
+
+    if windows_button.draw(screen):
+        pygame.display.set_mode((1400, 800), pygame.RESIZABLE)  # Change to your default window size
+        print("Switched to windowed mode")
+    if fullscreen_button.draw(screen):
+        pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
+        print("Switched to fullscreen mode")
+    if back_button.draw(screen):
+        menu_state = "options"
+        print("switch back to options")
+
+        
 
 # Function to draw time
 def draw_time():
@@ -583,18 +623,25 @@ while running:
                 game_paused = False
             if options_button.draw(screen):
                 menu_state = "options"
+                print("switch to options")
             if quit_button.draw(screen):
                 running = False
         elif menu_state == "options":
             if video_button.draw(screen):
-                pass  # Placeholder for video settings action
+                menu_state = "video"
+                print("switch to video")
             if audio_button.draw(screen):
-                pass  # Placeholder for audio settings action
+                menu_state = "audio"
+                print('switch to audio')
             if keys_button.draw(screen):
                 pass  # Placeholder for key settings action
             if back_button.draw(screen):
                 menu_state = "main"
-
+                print("switch back to main")
+        elif menu_state == "audio":
+            audio_settings()
+        elif menu_state == "video":
+            video_settings()
     elif player_lives <= 0:
         game_over_screen()
 
