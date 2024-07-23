@@ -129,6 +129,9 @@ game_over_sound = pygame.mixer.Sound('sounds/game-over-arcade-6435.mp3')
 
 game_over_sound_flag = False
 
+# List of sound effects
+sound_effects = [shooting_sound, jump_sound, game_over_sound]
+
 # Game over screen
 def game_over_screen():
 
@@ -220,13 +223,15 @@ def restart_game():
 # Setting for user to mute and unmute audio
 def audio_settings():
 
-    global menu_state
+    global menu_state, sound_effects
 
     if mute_button.draw(screen):
-        pygame.mixer.pause()
+        for sound in sound_effects:
+            sound.set_volume(0) 
         print("muted")
     if unmute_button.draw(screen):
-        pygame.mixer.unpause()
+        for sound in sound_effects:
+            sound.set_volume(1) 
         print('unmuted')
     if back_button.draw(screen) :
         menu_state = "options"
