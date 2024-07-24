@@ -44,7 +44,6 @@ options_img = pygame.image.load("images/button_options.png").convert_alpha()
 quit_img = pygame.image.load("images/button_quit.png").convert_alpha()
 video_img = pygame.image.load("images/button_video.png").convert_alpha()
 audio_img = pygame.image.load("images/button_audio.png").convert_alpha()
-keys_img = pygame.image.load("images/button_keys.png").convert_alpha()
 back_img = pygame.image.load("images/button_back.png").convert_alpha()
 restart_img = pygame.image.load("images/button_restart.png").convert_alpha()
 start_img = pygame.image.load("images/button_start.png").convert_alpha()
@@ -52,6 +51,7 @@ mute_img = pygame.image.load("images/button_mute.png").convert_alpha()
 unmute_img = pygame.image.load("images/button_unmute.png").convert_alpha()
 windows_img = pygame.image.load("images/button_windows.png").convert_alpha()
 fullscreen_img = pygame.image.load("images/button_fullscreen.png").convert_alpha()
+instruction_img = pygame.image.load("images/button_instruction.png").convert_alpha()
 
 # Calculate center x-coordinate for buttons
 button_width = resume_img.get_width()  # Assuming all buttons have the same width
@@ -59,18 +59,18 @@ center_x = screen_width // 2
 
 # Create button instances
 resume_button = button.Button(center_x - button_width // 2, 200, resume_img, 1)
-options_button = button.Button(center_x - button_width // 2, 300, options_img, 1)
-quit_button = button.Button(center_x - button_width // 2, 400, quit_img, 1)
-video_button = button.Button(center_x - button_width // 2, 200, video_img, 1)
-audio_button = button.Button(center_x - button_width // 2, 300, audio_img, 1)
-keys_button = button.Button(center_x - button_width // 2, 400, keys_img, 1)
+options_button = button.Button(center_x - button_width // 2, 400, options_img, 1)
+quit_button = button.Button(center_x - button_width // 2, 500, quit_img, 1)
+video_button = button.Button(center_x - button_width // 2, 300, video_img, 1)
+audio_button = button.Button(center_x - button_width // 2, 400, audio_img, 1)
 back_button = button.Button(center_x - button_width // 2, 500, back_img, 1)
-restart_button = button.Button(center_x - button_width // 2, 500, restart_img, 1)
+restart_button = button.Button(center_x - button_width // 2, 350, restart_img, 1)
 start_button = button.Button(center_x - button_width // 2, 500, start_img, 1)
 mute_button = button.Button(center_x - button_width // 2, 300, mute_img, 1)
 unmute_button = button.Button(center_x - button_width // 2, 400, unmute_img, 1)
 windows_button = button.Button(center_x - button_width // 2, 300, windows_img, 1)
 fullscreen_button = button.Button(center_x - button_width // 2, 400, fullscreen_img, 1)
+instruction_button = button.Button(center_x - button_width // 2, 300, instruction_img, 1)
 
 # Game variables
 game_paused = False
@@ -127,6 +127,9 @@ game_over_sound = pygame.mixer.Sound('sounds/game-over-arcade-6435.mp3')
 
 game_over_sound_flag = False
 
+# List of sound effects
+sound_effects = [shooting_sound, jump_sound, game_over_sound]
+
 # Game over screen
 def game_over_screen():
 
@@ -137,14 +140,12 @@ def game_over_screen():
     
     # Render game over text
     game_over_text = font.render('Game Over', True, TEXT_COL)
-    screen.blit(game_over_text, ((screen_width - game_over_text.get_width()) // 2, (screen_height - game_over_text.get_height()) // 2))
+    screen.blit(game_over_text, ((screen_width - game_over_text.get_width()) // 2, (screen_height - game_over_text.get_height()) // 3.75))
 
     if not game_over_sound_flag:
         game_over_sound.play()
         game_over_sound_flag = True
-
-    quit_button.rect.y = restart_button.rect.y + restart_button.image.get_height() + 20
-
+    
     if restart_button.draw(screen):
         restart_game()
     if quit_button.draw(screen):
@@ -195,7 +196,7 @@ def start_game():
     player.rect.x = 200
     player.rect.y = screen_height - 70
 
-
+# Function to restart the game back in the first level
 def restart_game():
     global player_lives, score, game_over_sound_flag, scroll, moving_left, moving_right
     player_lives = 3
@@ -215,20 +216,24 @@ def restart_game():
     enemies.add(generate_enemies(enemy_images, 10, common_width, common_height, 2))  # Generate new enemies
     laser_group.empty() 
 
+# Setting for user to mute and unmute audio
 def audio_settings():
 
-    global menu_state
+    global menu_state, sound_effects
 
     if mute_button.draw(screen):
-        pygame.mixer.pause()
+        for sound in sound_effects:
+            sound.set_volume(0) 
         print("muted")
     if unmute_button.draw(screen):
-        pygame.mixer.unpause()
+        for sound in sound_effects:
+            sound.set_volume(1) 
         print('unmuted')
-    if back_button.draw(screen):
+    if back_button.draw(screen) :
         menu_state = "options"
         print("switch back to options")
 
+# Function to resize screen to full screen or windows
 def video_settings():
     global menu_state, screen
 
@@ -242,7 +247,24 @@ def video_settings():
         menu_state = "options"
         print("switch back to options")
 
-        
+# How to play screen
+def how_to_play():
+    global menu_state
+
+    movement_text = font.render('W, A and D to move', True, TEXT_COL)
+    screen.blit(movement_text, ((screen_width - movement_text.get_width()) // 2, (screen_height - movement_text.get_height()) // 3.75))
+
+    shooting_text = font.render('J to shoot', True, TEXT_COL)
+    screen.blit(shooting_text, ((screen_width - shooting_text.get_width()) // 2,(screen_height - movement_text.get_height()) // 3))
+
+    menu_text = font.render('Space bar for menu', True, TEXT_COL)
+    screen.blit(menu_text, ((screen_width - menu_text.get_width()) // 2,(screen_height - menu_text.get_height()) // 2.25))
+
+    if back_button.draw(screen):
+        menu_state = "main"
+        print("switch back to main")
+        pygame.time.delay(220)
+
 
 # Function to draw time
 def draw_time():
@@ -290,17 +312,23 @@ class World():
             tile_rect = tile.move(scroll, 0)
             pygame.draw.rect(screen, (144, 201, 120), tile_rect)
             pygame.draw.rect(screen, (0, 0, 0), tile_rect, 2)
-
+    def check_laser_collisions(self, laser_group):
+        for laser in laser_group:
+            # Check collision with ground tiles
+            for tile in self.floor_list:
+                if is_collision_for_block(tile.right, laser.rect.left, tile.left, laser.rect.right, tile,laser.rect, scroll):
+                    laser.kill()  # Remove the laser if it hits a ground tile
+                    break
 class Laser(pygame.sprite.Sprite):
     def __init__(self, player, scroll):
         pygame.sprite.Sprite.__init__(self)
-        self.image = pygame.Surface((10, 2))
+        self.image = pygame.Surface((30, 2))
         self.image.fill((255, 0, 0))  # Red laser
         self.rect = self.image.get_rect()
         self.player = player  # Reference to the player object
         self.rect.centerx = self.player.rect.centerx+scroll  # Initialize laser's x-position to player's center x
         self.rect.centery = self.player.rect.centery  # Initialize laser's y-position to player's center y
-        self.speed = 10 * self.player.direction  # Set speed based on player's facing direction
+        self.speed = 9 * self.player.direction  # Set speed based on player's facing direction
         shooting_sound.play() # PLay shooting sound
 
     def update(self, screen_width):
@@ -458,6 +486,7 @@ enemy_images = [
 enemies = generate_enemies(enemy_images, 10, common_width, common_height, 2)
 
 class Monster(pygame.sprite.Sprite):
+
     def __init__(self, image_paths, x, scale, speed):
         pygame.sprite.Sprite.__init__(self)
         self.speed = speed
@@ -483,6 +512,7 @@ class Monster(pygame.sprite.Sprite):
         self.image = self.animation_list[self.index]
         self.rect = self.image.get_rect()
         self.rect.center = (x, screen_height - 70)
+        # self.rect.width/=2
         self.base_y = screen_height - 70
         self.ground_level = screen_height - 70  # Set ground level attribute
 
@@ -508,7 +538,7 @@ class Monster(pygame.sprite.Sprite):
             self.jump = False
             self.on_ground = False
 
-        self.vel_y += 0.75  # GRAVITY
+        self.vel_y += 0.65  # GRAVITY
 
         dy += self.vel_y 
 
@@ -540,14 +570,17 @@ class Monster(pygame.sprite.Sprite):
         
         return dx  # Return the amount of horizontal movement
 
-    def check_collisions(self, laser_group):
-        if pygame.sprite.spritecollide(self, laser_group, True):
-            global player_lives
-            player_lives -= 1
-            print("got hit!")
-            if player_lives <= 0:
-                # Handle game over logic here if necessary
-                pass
+    def check_collisions(self, laser_group,scroll):
+        global player_lives
+        for laser in laser_group:
+            if is_collision(self.rect.right, laser.rect.left,self.rect.left, laser.rect.right, laser,self.rect,laser.rect, scroll, self.jump):
+                laser.kill()
+                # laser_group.update(screen_width)
+                player_lives -= 1
+                print("Got hit!")
+                if player_lives <= 0:
+                    # Handle game over logic here if necessary
+                    pass
 
     def update_animation(self):
         ANIMATION_COOLDOWN = 100  # milliseconds
@@ -562,6 +595,48 @@ class Monster(pygame.sprite.Sprite):
         rect_with_scroll = self.rect.move(scroll, 0)
         screen.blit(pygame.transform.flip(self.image, self.flip, False), rect_with_scroll)
 
+def is_collision(right, left, left1, right1,laser, rect1, rect2, scroll, jump):
+    x1, y1, w1, h1 = rect1
+    x2, y2, w2, h2 = rect2
+    # right+=scroll
+    left-=scroll
+    # left1+=scroll
+    right1-=scroll
+    # Calculate the actuadl top and bottom edges of the rectangles
+    top1 = y1
+    bottom1 = y1 + h1
+    top2 = y2
+    bottom2 = y2 + h2
+    # print("right of player ", right, " left of the laser ", left)
+    # Check for overlap based on the x and y coordinates
+    if jump :
+        bottom1+=20
+        top1+=20
+    if right >= left and left1 <= right1 and bottom1 >= top2 and top1 <= bottom2:
+        # laser.kill()
+        return True
+    else:
+        return False
+
+def is_collision_for_block(right, left, left1, right1,rect1, rect2, scroll):
+    x1, y1, w1, h1 = rect1
+    x2, y2, w2, h2 = rect2
+    # right+=scroll
+    left-=scroll
+    # left1+=scroll
+    right1-=scroll
+    # Calculate the actuadl top and bottom edges of the rectangles
+    top1 = y1
+    bottom1 = y1 + h1
+    top2 = y2
+    bottom2 = y2 + h2
+    # Check for overlap based on the x and y coordinates
+    if right >= left and left1 <= right1 and bottom1 >= top2 and top1 <= bottom2:
+        # laser.kill()
+        return True
+    else:
+        return False
+    
 # Load player images
 player_images = [
     r'img_character\Screenshot_2024-06-14_163851-removebg-preview.png', 
@@ -614,6 +689,7 @@ while running:
             elif event.key == pygame.K_d:
                 moving_right = False
 
+
     # Clear the screen
     screen.fill((0, 128, 255))
 
@@ -621,27 +697,33 @@ while running:
         if menu_state == "main":
             if resume_button.draw(screen):
                 game_paused = False
-            if options_button.draw(screen):
+            elif instruction_button.draw(screen):
+                menu_state = "instruction"
+            elif options_button.draw(screen):
                 menu_state = "options"
                 print("switch to options")
-            if quit_button.draw(screen):
+                pygame.time.delay(220)
+            elif quit_button.draw(screen):
                 running = False
         elif menu_state == "options":
             if video_button.draw(screen):
                 menu_state = "video"
                 print("switch to video")
+                pygame.time.delay(220)
             if audio_button.draw(screen):
                 menu_state = "audio"
                 print('switch to audio')
-            if keys_button.draw(screen):
-                pass  # Placeholder for key settings action
+                pygame.time.delay(220)
             if back_button.draw(screen):
                 menu_state = "main"
                 print("switch back to main")
-        elif menu_state == "audio":
-            audio_settings()
+                pygame.time.delay(220)
+        elif menu_state == "instruction":
+            how_to_play()
         elif menu_state == "video":
             video_settings()
+        elif menu_state == "audio":
+            audio_settings()
     elif player_lives <= 0:
         game_over_screen()
 
@@ -704,9 +786,9 @@ while running:
 
         laser_group.update(screen_width)
         laser_group.draw(screen)
-
-        player.check_collisions(laser_group)
-        
+        # print(laser_group.__len__)
+        player.check_collisions(laser_group, scroll)
+        world.check_laser_collisions(laser_group)
 
         # Draw HUD elements
         draw_time()
@@ -715,5 +797,5 @@ while running:
         draw_lives()
 
     # Update display
-    pygame.display.update()
+    pygame.display.flip()
     clock.tick(60)
