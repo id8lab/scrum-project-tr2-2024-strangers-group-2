@@ -44,7 +44,6 @@ options_img = pygame.image.load("images/button_options.png").convert_alpha()
 quit_img = pygame.image.load("images/button_quit.png").convert_alpha()
 video_img = pygame.image.load("images/button_video.png").convert_alpha()
 audio_img = pygame.image.load("images/button_audio.png").convert_alpha()
-keys_img = pygame.image.load("images/button_keys.png").convert_alpha()
 back_img = pygame.image.load("images/button_back.png").convert_alpha()
 restart_img = pygame.image.load("images/button_restart.png").convert_alpha()
 start_img = pygame.image.load("images/button_start.png").convert_alpha()
@@ -62,9 +61,8 @@ center_x = screen_width // 2
 resume_button = button.Button(center_x - button_width // 2, 200, resume_img, 1)
 options_button = button.Button(center_x - button_width // 2, 400, options_img, 1)
 quit_button = button.Button(center_x - button_width // 2, 500, quit_img, 1)
-video_button = button.Button(center_x - button_width // 2, 200, video_img, 1)
-audio_button = button.Button(center_x - button_width // 2, 300, audio_img, 1)
-keys_button = button.Button(center_x - button_width // 2, 400, keys_img, 1)
+video_button = button.Button(center_x - button_width // 2, 300, video_img, 1)
+audio_button = button.Button(center_x - button_width // 2, 400, audio_img, 1)
 back_button = button.Button(center_x - button_width // 2, 500, back_img, 1)
 restart_button = button.Button(center_x - button_width // 2, 350, restart_img, 1)
 start_button = button.Button(center_x - button_width // 2, 500, start_img, 1)
@@ -147,12 +145,10 @@ def game_over_screen():
     if not game_over_sound_flag:
         game_over_sound.play()
         game_over_sound_flag = True
-
-    restart_button.draw(screen)
-    quit_button.draw(screen)
-    if restart_button.click():
+    
+    if restart_button.draw(screen):
         restart_game()
-    if quit_button.click():
+    if quit_button.draw(screen):
         running = False
 
     # Update display
@@ -269,10 +265,6 @@ def how_to_play():
         print("switch back to main")
         pygame.time.delay(220)
 
-# Function for user to change their key binds
-def key_binding():
-    pass
-
 
 # Function to draw time
 def draw_time():
@@ -320,17 +312,23 @@ class World():
             tile_rect = tile.move(scroll, 0)
             pygame.draw.rect(screen, (144, 201, 120), tile_rect)
             pygame.draw.rect(screen, (0, 0, 0), tile_rect, 2)
-
+    def check_laser_collisions(self, laser_group):
+        for laser in laser_group:
+            # Check collision with ground tiles
+            for tile in self.floor_list:
+                if is_collision_for_block(tile.right, laser.rect.left, tile.left, laser.rect.right, tile,laser.rect, scroll):
+                    laser.kill()  # Remove the laser if it hits a ground tile
+                    break
 class Laser(pygame.sprite.Sprite):
     def __init__(self, player, scroll):
         pygame.sprite.Sprite.__init__(self)
-        self.image = pygame.Surface((10, 2))
+        self.image = pygame.Surface((30, 2))
         self.image.fill((255, 0, 0))  # Red laser
         self.rect = self.image.get_rect()
         self.player = player  # Reference to the player object
         self.rect.centerx = self.player.rect.centerx+scroll  # Initialize laser's x-position to player's center x
         self.rect.centery = self.player.rect.centery  # Initialize laser's y-position to player's center y
-        self.speed = 10 * self.player.direction  # Set speed based on player's facing direction
+        self.speed = 9 * self.player.direction  # Set speed based on player's facing direction
         shooting_sound.play() # PLay shooting sound
 
     def update(self, screen_width):
@@ -488,6 +486,7 @@ enemy_images = [
 enemies = generate_enemies(enemy_images, 10, common_width, common_height, 2)
 
 class Monster(pygame.sprite.Sprite):
+
     def __init__(self, image_paths, x, scale, speed):
         pygame.sprite.Sprite.__init__(self)
         self.speed = speed
@@ -513,6 +512,7 @@ class Monster(pygame.sprite.Sprite):
         self.image = self.animation_list[self.index]
         self.rect = self.image.get_rect()
         self.rect.center = (x, screen_height - 70)
+        # self.rect.width/=2
         self.base_y = screen_height - 70
         self.ground_level = screen_height - 70  # Set ground level attribute
 
@@ -538,7 +538,7 @@ class Monster(pygame.sprite.Sprite):
             self.jump = False
             self.on_ground = False
 
-        self.vel_y += 0.75  # GRAVITY
+        self.vel_y += 0.65  # GRAVITY
 
         dy += self.vel_y 
 
@@ -570,14 +570,17 @@ class Monster(pygame.sprite.Sprite):
         
         return dx  # Return the amount of horizontal movement
 
-    def check_collisions(self, laser_group):
-        if pygame.sprite.spritecollide(self, laser_group, True):
-            global player_lives
-            player_lives -= 1
-            print("got hit!")
-            if player_lives <= 0:
-                # Handle game over logic here if necessary
-                pass
+    def check_collisions(self, laser_group,scroll):
+        global player_lives
+        for laser in laser_group:
+            if is_collision(self.rect.right, laser.rect.left,self.rect.left, laser.rect.right, laser,self.rect,laser.rect, scroll, self.jump):
+                laser.kill()
+                # laser_group.update(screen_width)
+                player_lives -= 1
+                print("Got hit!")
+                if player_lives <= 0:
+                    # Handle game over logic here if necessary
+                    pass
 
     def update_animation(self):
         ANIMATION_COOLDOWN = 100  # milliseconds
@@ -592,6 +595,48 @@ class Monster(pygame.sprite.Sprite):
         rect_with_scroll = self.rect.move(scroll, 0)
         screen.blit(pygame.transform.flip(self.image, self.flip, False), rect_with_scroll)
 
+def is_collision(right, left, left1, right1,laser, rect1, rect2, scroll, jump):
+    x1, y1, w1, h1 = rect1
+    x2, y2, w2, h2 = rect2
+    # right+=scroll
+    left-=scroll
+    # left1+=scroll
+    right1-=scroll
+    # Calculate the actuadl top and bottom edges of the rectangles
+    top1 = y1
+    bottom1 = y1 + h1
+    top2 = y2
+    bottom2 = y2 + h2
+    # print("right of player ", right, " left of the laser ", left)
+    # Check for overlap based on the x and y coordinates
+    if jump :
+        bottom1+=20
+        top1+=20
+    if right >= left and left1 <= right1 and bottom1 >= top2 and top1 <= bottom2:
+        # laser.kill()
+        return True
+    else:
+        return False
+
+def is_collision_for_block(right, left, left1, right1,rect1, rect2, scroll):
+    x1, y1, w1, h1 = rect1
+    x2, y2, w2, h2 = rect2
+    # right+=scroll
+    left-=scroll
+    # left1+=scroll
+    right1-=scroll
+    # Calculate the actuadl top and bottom edges of the rectangles
+    top1 = y1
+    bottom1 = y1 + h1
+    top2 = y2
+    bottom2 = y2 + h2
+    # Check for overlap based on the x and y coordinates
+    if right >= left and left1 <= right1 and bottom1 >= top2 and top1 <= bottom2:
+        # laser.kill()
+        return True
+    else:
+        return False
+    
 # Load player images
 player_images = [
     r'img_character\Screenshot_2024-06-14_163851-removebg-preview.png', 
@@ -644,6 +689,7 @@ while running:
             elif event.key == pygame.K_d:
                 moving_right = False
 
+
     # Clear the screen
     screen.fill((0, 128, 255))
 
@@ -668,8 +714,6 @@ while running:
                 menu_state = "audio"
                 print('switch to audio')
                 pygame.time.delay(220)
-            if keys_button.draw(screen):
-                pass
             if back_button.draw(screen):
                 menu_state = "main"
                 print("switch back to main")
@@ -742,9 +786,9 @@ while running:
 
         laser_group.update(screen_width)
         laser_group.draw(screen)
-
-        player.check_collisions(laser_group)
-        
+        # print(laser_group.__len__)
+        player.check_collisions(laser_group, scroll)
+        world.check_laser_collisions(laser_group)
 
         # Draw HUD elements
         draw_time()
@@ -753,5 +797,5 @@ while running:
         draw_lives()
 
     # Update display
-    pygame.display.update()
+    pygame.display.flip()
     clock.tick(60)
