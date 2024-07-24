@@ -276,7 +276,13 @@ class World():
             tile_rect = tile.move(scroll, 0)
             pygame.draw.rect(screen, (144, 201, 120), tile_rect)
             pygame.draw.rect(screen, (0, 0, 0), tile_rect, 2)
-
+    def check_laser_collisions(self, laser_group):
+        for laser in laser_group:
+            # Check collision with ground tiles
+            for tile in self.floor_list:
+                if is_collision_for_block(tile.right, laser.rect.left, tile.left, laser.rect.right, tile,laser.rect, scroll):
+                    laser.kill()  # Remove the laser if it hits a ground tile
+                    break
 class Laser(pygame.sprite.Sprite):
     def __init__(self, player, scroll):
         pygame.sprite.Sprite.__init__(self)
@@ -575,6 +581,26 @@ def is_collision(right, left, left1, right1,laser, rect1, rect2, scroll, jump):
     else:
         return False
 
+def is_collision_for_block(right, left, left1, right1,rect1, rect2, scroll):
+    x1, y1, w1, h1 = rect1
+    x2, y2, w2, h2 = rect2
+    # right+=scroll
+    left-=scroll
+    # left1+=scroll
+    right1-=scroll
+    # Calculate the actuadl top and bottom edges of the rectangles
+    top1 = y1
+    bottom1 = y1 + h1
+    top2 = y2
+    bottom2 = y2 + h2
+    # print("right of player ", right, " left of the laser ", left)
+    # Check for overlap based on the x and y coordinates
+    if right >= left and left1 <= right1 and bottom1 >= top2 and top1 <= bottom2:
+        # laser.kill()
+        return True
+    else:
+        return False
+
 
 # Load player images
 player_images = [
@@ -717,7 +743,7 @@ while running:
         laser_group.draw(screen)
         # print(laser_group.__len__)
         player.check_collisions(laser_group, scroll)
-        
+        world.check_laser_collisions(laser_group)
 
         # Draw HUD elements
         draw_time()
