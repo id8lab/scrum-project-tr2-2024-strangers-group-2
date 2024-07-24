@@ -284,7 +284,7 @@ class World():
                     laser.kill()  # Remove the laser if it hits a ground tile
                     break
 class Laser(pygame.sprite.Sprite):
-    def __init__(self, player, scroll):
+    def __init__(self, player, scroll,is_player ):
         pygame.sprite.Sprite.__init__(self)
         self.image = pygame.Surface((30, 2))
         self.image.fill((255, 0, 0))  # Red laser
@@ -293,6 +293,7 @@ class Laser(pygame.sprite.Sprite):
         self.rect.centerx = self.player.rect.centerx+scroll  # Initialize laser's x-position to player's center x
         self.rect.centery = self.player.rect.centery  # Initialize laser's y-position to player's center y
         self.speed = 9 * self.player.direction  # Set speed based on player's facing direction
+        self.is_player = is_player
         shooting_sound.play() # PLay shooting sound
 
     def update(self, screen_width):
@@ -348,7 +349,7 @@ class Enemy(pygame.sprite.Sprite):
         current_time = pygame.time.get_ticks()
         if self.can_shoot and current_time - self.last_shot_time > self.shoot_cooldown:
             self.last_shot_time = current_time
-            laser = Laser(self, scroll)
+            laser = Laser(self, scroll,False)
             laser_group.add(laser)
             shooting_sound.play()  # Play shooting sound
             # print('shoot!')
@@ -536,7 +537,7 @@ class Monster(pygame.sprite.Sprite):
     def check_collisions(self, laser_group,scroll):
         global player_lives
         for laser in laser_group:
-            if is_collision(self.rect.right, laser.rect.left,self.rect.left, laser.rect.right, laser,self.rect,laser.rect, scroll, self.jump):
+            if is_collision(self.rect.right, laser.rect.left,self.rect.left, laser.rect.right, laser,self.rect,laser.rect, scroll, self.jump) and laser.is_player != True:
                 laser.kill()
                 # laser_group.update(screen_width)
                 player_lives -= 1
@@ -647,7 +648,7 @@ while running:
                 jump_sound.play()  # Play jump sound
             elif event.key == pygame.K_j:  # Left Control key to shoot
                 direction = player.direction
-                laser = Laser(player, scroll)
+                laser = Laser(player, scroll, True)
                 laser_group.add(laser)
         elif event.type == pygame.KEYUP:
             if event.key == pygame.K_a:
