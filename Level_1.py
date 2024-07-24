@@ -230,7 +230,8 @@ class World():
             rect_with_scroll = self.rect.move(scroll, 0)
             screen.blit(pygame.transform.flip(self.image, self.flip, False), rect_with_scroll)
 
-    # Load player images
+        # Load player images
+
     player_images = [
         r'img_character\Screenshot_2024-06-14_163851-removebg-preview.png',
         r'img_character\Screenshot_2024-06-14_164717-removebg-preview.png',
@@ -240,6 +241,7 @@ class World():
     ]
 
     player = Monster(player_images, 200, 0.15, 5)
+
 
     # Main loop
     clock = pygame.time.Clock()
