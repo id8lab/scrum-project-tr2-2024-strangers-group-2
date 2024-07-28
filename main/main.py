@@ -53,6 +53,7 @@ windows_img = pygame.image.load("images/button_windows.png").convert_alpha()
 fullscreen_img = pygame.image.load("images/button_fullscreen.png").convert_alpha()
 instruction_img = pygame.image.load("images/button_instruction.png").convert_alpha()
 
+
 # Calculate center x-coordinate for buttons
 button_width = resume_img.get_width()  # Assuming all buttons have the same width
 center_x = screen_width // 2
@@ -65,7 +66,7 @@ video_button = button.Button(center_x - button_width // 2, 300, video_img, 1)
 audio_button = button.Button(center_x - button_width // 2, 400, audio_img, 1)
 back_button = button.Button(center_x - button_width // 2, 500, back_img, 1)
 restart_button = button.Button(center_x - button_width // 2, 350, restart_img, 1)
-start_button = button.Button(center_x - button_width // 2, 500, start_img, 1)
+start_button = button.Button(center_x - button_width // 2, 200, start_img, 1)
 mute_button = button.Button(center_x - button_width // 2, 300, mute_img, 1)
 unmute_button = button.Button(center_x - button_width // 2, 400, unmute_img, 1)
 windows_button = button.Button(center_x - button_width // 2, 300, windows_img, 1)
@@ -76,6 +77,7 @@ instruction_button = button.Button(center_x - button_width // 2, 300, instructio
 game_paused = False
 menu_state = "main"
 game_state = "start"
+previous_state = 'start'
 
 # Helper function to draw text
 def draw_text(text, font, color, x, y):
@@ -157,22 +159,58 @@ def game_over_screen():
 
 # Game start screen
 def start_screen():
-
-    global running
+    global running, game_state, menu_state
 
     screen.fill((0,0,0))
     
     game_title = font.render('Shoot the sprite', True, TEXT_COL)
-    screen.blit(game_title, ((screen_width - game_title.get_width()) // 2, (screen_height - game_title.get_height()) // 2))
+    screen.blit(game_title, ((screen_width - game_title.get_width()) // 2, (screen_height - game_title.get_height()) // 9))
 
     if start_button.draw(screen):
         start_game()
+    elif instruction_button.draw(screen):
+        menu_state = "instruction"
+        game_state = "menu"
+    elif options_button.draw(screen):
+        menu_state = "options"
+        game_state = "menu"
     elif quit_button.draw(screen):
         running = False
-    pygame.display.flip()
+
+def options():
+    global running, menu_state, game_paused, game_state
+    if menu_state == "main":
+        if resume_button.draw(screen):
+            game_paused = False
+            game_state = "play"
+        elif instruction_button.draw(screen):
+            menu_state = "instruction"
+        elif options_button.draw(screen):
+            menu_state = "options"
+        elif quit_button.draw(screen):
+            running = False
+    elif menu_state == "options":
+        if video_button.draw(screen):
+            menu_state = "video"
+        if audio_button.draw(screen):
+            menu_state = "audio"
+        if back_button.draw(screen):
+            menu_state = "main"
+            if previous_state == "start":
+                game_state = "start"
+                print('back to start')
+            else:
+                game_state = "play"
+                print('back to play')
+    elif menu_state == "instruction":
+        how_to_play()
+    elif menu_state == "video":
+        video_settings()
+    elif menu_state == "audio":
+        audio_settings()
 
 def start_game():
-    global level, player_lives, score, timer, scroll, moving_left, moving_right, game_paused, menu_state
+    global level, player_lives, score, timer, scroll, moving_left, moving_right, game_paused, menu_state, game_state  
 
     level = 1
     player_lives = 3
@@ -183,6 +221,7 @@ def start_game():
     moving_right = False
     game_paused = False
     menu_state = "main"
+    game_state = "play"
 
     # Clear any existing enemies and lasers
     enemies.empty()
@@ -249,7 +288,7 @@ def video_settings():
 
 # How to play screen
 def how_to_play():
-    global menu_state
+    global menu_state, game_state
 
     movement_text = font.render('W, A and D to move', True, TEXT_COL)
     screen.blit(movement_text, ((screen_width - movement_text.get_width()) // 2, (screen_height - movement_text.get_height()) // 3.75))
@@ -262,8 +301,10 @@ def how_to_play():
 
     if back_button.draw(screen):
         menu_state = "main"
-        print("switch back to main")
-        pygame.time.delay(220)
+        if previous_state == "start":
+            game_state = "start"
+        else:
+            game_state = "play"
 
 
 # Function to draw time
@@ -660,141 +701,140 @@ scroll = 0
 scroll_speed = 5
 scroll_threshold = screen_width // 4
 
+def draw_pause_background():
+    overlay = pygame.Surface((screen_width, screen_height))
+    overlay.set_alpha(128)
+    overlay.fill((0, 0, 0))
+    screen.blit(overlay, (0, 0))
+
+
 while running:
-
-    # if game_state == "start":
-    #     start_screen()
-    # elif game_state == "play":
-
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            running = False
-        elif event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_SPACE:
-                game_paused = not game_paused  # Toggle pause state
-            elif event.key == pygame.K_a:
-                moving_left = True
-            elif event.key == pygame.K_d:
-                moving_right = True
-            elif event.key == pygame.K_w:
-                player.jump = True
-                jump_sound.play()  # Play jump sound
-            elif event.key == pygame.K_j:  # Left Control key to shoot
-                direction = player.direction
-                laser = Laser(player, scroll)
-                laser_group.add(laser)
-        elif event.type == pygame.KEYUP:
-            if event.key == pygame.K_a:
-                moving_left = False
-            elif event.key == pygame.K_d:
-                moving_right = False
-
-
-    # Clear the screen
-    screen.fill((0, 128, 255))
-
-    if game_paused:
-        if menu_state == "main":
-            if resume_button.draw(screen):
-                game_paused = False
-            elif instruction_button.draw(screen):
-                menu_state = "instruction"
-            elif options_button.draw(screen):
-                menu_state = "options"
-                print("switch to options")
-                pygame.time.delay(220)
-            elif quit_button.draw(screen):
+    if game_state == "start":
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
                 running = False
-        elif menu_state == "options":
-            if video_button.draw(screen):
-                menu_state = "video"
-                print("switch to video")
-                pygame.time.delay(220)
-            if audio_button.draw(screen):
-                menu_state = "audio"
-                print('switch to audio')
-                pygame.time.delay(220)
-            if back_button.draw(screen):
-                menu_state = "main"
-                print("switch back to main")
-                pygame.time.delay(220)
-        elif menu_state == "instruction":
-            how_to_play()
-        elif menu_state == "video":
-            video_settings()
-        elif menu_state == "audio":
-            audio_settings()
-    elif player_lives <= 0:
-        game_over_screen()
-
-    else:
-        draw_text("Press SPACE to pause", font, TEXT_COL, 412, 375)
-
-        # Move the player
-        dx = player.move(moving_left, moving_right)
         
-        # Detect player and handle shooting for each enemy
-        for enemy in enemies:
-            enemy.detect_player(player.rect)
-            enemy.shoot_laser(scroll)
-        
-        # Resume normal movement for enemies
-        for enemy in enemies:
-            if not enemy.can_shoot:
-                # Update enemy movement if not shooting
-                enemy.update()
+        previous_state = "start"  # Set previous state when entering start screen
+        start_screen()
 
-        # Adjust scroll to keep player in fixed position
-        if moving_right:
-            scroll -= scroll_speed
-        if moving_left:
-            scroll += scroll_speed
+    elif game_state == "menu":
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_SPACE:
+                    if previous_state == "start":
+                        game_state = "start"
+                    else:
+                        game_state = "play"
+                    game_paused = False
 
-        # Prevent scrolling beyond the world's bounds
-        max_scroll = -TILE_SIZE * (COLS - screen_width // TILE_SIZE)
-        if scroll < max_scroll:
-            scroll = max_scroll
-        elif scroll > 0:
-            scroll = 0
+        screen.fill((0, 0, 0))  # Clear screen
+        options()
 
-        # Update background positions
-        sky_x = scroll * 0.1 % screen_width
-        mountain_x = scroll * 0.2 % screen_width
-        pine1_x = scroll * 0.6 % screen_width
-        pine2_x = scroll * 0.8 % screen_width
+    elif game_state == "play":
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_SPACE:
+                    game_paused = not game_paused
+                    if game_paused:
+                        game_state = "menu"
+                        menu_state = "main"
+                        previous_state = "play"
+                elif event.key == pygame.K_a:
+                    moving_left = True
+                elif event.key == pygame.K_d:
+                    moving_right = True
+                elif event.key == pygame.K_w:
+                    player.jump = True
+                    jump_sound.play()
+                elif event.key == pygame.K_j:
+                    direction = player.direction
+                    laser = Laser(player, scroll)
+                    laser_group.add(laser)
+            elif event.type == pygame.KEYUP:
+                if event.key == pygame.K_a:
+                    moving_left = False
+                elif event.key == pygame.K_d:
+                    moving_right = False
 
-        # Draw the background images
-        screen.blit(sky_cloud, (sky_x, 0))
-        screen.blit(sky_cloud, (sky_x - screen_width, 0))
-        screen.blit(mountain, (mountain_x, screen_height - mountain_height))
-        screen.blit(mountain, (mountain_x - screen_width, screen_height - mountain_height))
-        screen.blit(pine1, (pine1_x, screen_height - pine_height))
-        screen.blit(pine1, (pine1_x - screen_width, screen_height - pine_height))
-        screen.blit(pine2, (pine2_x, screen_height - pine_height))
-        screen.blit(pine2, (pine2_x - screen_width, screen_height - pine_height))
-        
-        # Draw the world
-        world.draw(screen, scroll)
+        if not game_paused and player_lives > 0:
+            # Clear the screen
+            screen.fill((0, 128, 255))
 
-        # Draw the player
-        player.draw(screen, scroll)
+            # Move the player
+            dx = player.move(moving_left, moving_right)
+            
+            # Detect player and handle shooting for each enemy
+            for enemy in enemies:
+                enemy.detect_player(player.rect)
+                enemy.shoot_laser(scroll)
+            
+            # Resume normal movement for enemies
+            for enemy in enemies:
+                if not enemy.can_shoot:
+                    enemy.update()
 
-        # Update and draw enemies
-        enemies.update()
-        for enemy in enemies:
-            enemy.draw(screen, scroll)
+            # Adjust scroll
+            if moving_right:
+                scroll -= scroll_speed
+            if moving_left:
+                scroll += scroll_speed
 
-        laser_group.update(screen_width)
-        laser_group.draw(screen)
-        # print(laser_group.__len__)
-        player.check_collisions(laser_group, scroll)
-        world.check_laser_collisions(laser_group)
+            # Prevent scrolling beyond the world's bounds
+            max_scroll = -TILE_SIZE * (COLS - screen_width // TILE_SIZE)
+            if scroll < max_scroll:
+                scroll = max_scroll
+            elif scroll > 0:
+                scroll = 0
 
-        # Draw HUD elements
-        draw_time()
-        draw_score()
-        draw_level()
-        draw_lives()
+            # Update and draw background
+            sky_x = scroll * 0.1 % screen_width
+            mountain_x = scroll * 0.2 % screen_width
+            pine1_x = scroll * 0.6 % screen_width
+            pine2_x = scroll * 0.8 % screen_width
+
+            screen.blit(sky_cloud, (sky_x, 0))
+            screen.blit(sky_cloud, (sky_x - screen_width, 0))
+            screen.blit(mountain, (mountain_x, screen_height - mountain_height))
+            screen.blit(mountain, (mountain_x - screen_width, screen_height - mountain_height))
+            screen.blit(pine1, (pine1_x, screen_height - pine_height))
+            screen.blit(pine1, (pine1_x - screen_width, screen_height - pine_height))
+            screen.blit(pine2, (pine2_x, screen_height - pine_height))
+            screen.blit(pine2, (pine2_x - screen_width, screen_height - pine_height))
+            
+            # Draw the world
+            world.draw(screen, scroll)
+
+            # Draw the player
+            player.draw(screen, scroll)
+
+            # Update and draw enemies
+            enemies.update()
+            for enemy in enemies:
+                enemy.draw(screen, scroll)
+
+            laser_group.update(screen_width)
+            laser_group.draw(screen)
+            player.check_collisions(laser_group, scroll)
+            world.check_laser_collisions(laser_group)
+
+            # Draw HUD elements
+            draw_time()
+            draw_score()
+            draw_level()
+            draw_lives()
+
+            # Update timer
+            timer += 1/60  # Assuming 60 FPS
+
+        elif game_paused:
+            draw_pause_background()
+            options()
+        elif player_lives <= 0:
+            game_over_screen()
 
     # Update display
     pygame.display.flip()
