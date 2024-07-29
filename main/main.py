@@ -244,10 +244,7 @@ def restart_game():
     scroll = 0
     moving_left = False
     moving_right = False
-    player.rect.x = 200  # Reset player position
-    player.rect.y = 0
-    player.velocity_x = 0
-    player.velocity_y = 0
+    player.reset_position()  # Use the new reset_position method
     player.animation_state = "idle"  # Reset animation state
     player.lives = 3  # Reset player lives
     player.score = 0  # Reset player score
@@ -428,7 +425,6 @@ class Enemy(pygame.sprite.Sprite):
             laser = Laser(self, scroll)
             laser_group.add(laser)
             shooting_sound.play()  # Play shooting sound
-            # print('shoot!')
 
     def handle_hit(self):
         self.hit_points += 1
@@ -539,6 +535,7 @@ class Monster(pygame.sprite.Sprite):
         self.animation_list = []
         self.index = 0
         self.update_time = pygame.time.get_ticks()
+        self.is_falling = False
 
         # Define a common size for the images
         common_width = 64
@@ -554,8 +551,16 @@ class Monster(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.rect.center = (x, screen_height - 70)
         # self.rect.width/=2
-        self.base_y = screen_height - 70
-        self.ground_level = screen_height - 70  # Set ground level attribute
+        # self.base_y = screen_height - 70
+        # self.ground_level = screen_height - 70  # Set ground level attribute
+        self.start_x = x  # Store the starting x position
+        self.start_y = screen_height - 70  # Store the starting y position
+        
+    def reset_position(self):
+        self.rect.center = (self.start_x, self.start_y)
+        self.vel_y = 0
+        self.on_ground = True
+        self.is_falling = False
 
     def move(self, moving_left, moving_right):
         dx = 0
@@ -608,6 +613,10 @@ class Monster(pygame.sprite.Sprite):
                 break
         else:
             self.collided = False
+
+        # Check if the player has fallen off the screen
+        if self.rect.top > screen_height:
+            self.is_falling = True
         
         return dx  # Return the amount of horizontal movement
 
@@ -766,6 +775,9 @@ while running:
 
             # Move the player
             dx = player.move(moving_left, moving_right)
+            
+            if player.is_falling:
+                player_lives = 0  # Set lives to 0 to trigger game over
             
             # Detect player and handle shooting for each enemy
             for enemy in enemies:
