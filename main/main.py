@@ -244,10 +244,7 @@ def restart_game():
     scroll = 0
     moving_left = False
     moving_right = False
-    player.rect.x = 200  # Reset player position
-    player.rect.y = 0
-    player.velocity_x = 0
-    player.velocity_y = 0
+    player.reset_position()  # Use the new reset_position method
     player.animation_state = "idle"  # Reset animation state
     player.lives = 3  # Reset player lives
     player.score = 0  # Reset player score
@@ -361,7 +358,7 @@ class World():
                     laser.kill()  # Remove the laser if it hits a ground tile
                     break
 class Laser(pygame.sprite.Sprite):
-    def __init__(self, player, scroll):
+    def __init__(self, player, scroll,is_player,is_enemy ):
         pygame.sprite.Sprite.__init__(self)
         self.image = pygame.Surface((30, 2))
         self.image.fill((255, 0, 0))  # Red laser
@@ -370,6 +367,8 @@ class Laser(pygame.sprite.Sprite):
         self.rect.centerx = self.player.rect.centerx+scroll  # Initialize laser's x-position to player's center x
         self.rect.centery = self.player.rect.centery  # Initialize laser's y-position to player's center y
         self.speed = 9 * self.player.direction  # Set speed based on player's facing direction
+        self.is_player = is_player
+        self.is_enemy= is_enemy
         shooting_sound.play() # PLay shooting sound
 
     def update(self, screen_width):
@@ -425,10 +424,9 @@ class Enemy(pygame.sprite.Sprite):
         current_time = pygame.time.get_ticks()
         if self.can_shoot and current_time - self.last_shot_time > self.shoot_cooldown:
             self.last_shot_time = current_time
-            laser = Laser(self, scroll)
+            laser = Laser(self, scroll,False,True)
             laser_group.add(laser)
             shooting_sound.play()  # Play shooting sound
-            # print('shoot!')
 
     def handle_hit(self):
         self.hit_points += 1
@@ -492,6 +490,34 @@ class Enemy(pygame.sprite.Sprite):
     def draw(self, screen, scroll):
         rect_with_scroll = self.rect.move(scroll, 0)
         screen.blit(pygame.transform.flip(self.image, self.flip, False), rect_with_scroll)
+    def check_collisions(self, laser_group,scroll):
+            for laser in laser_group:
+                if is_collision_for_enemy(self.rect.right, laser.rect.left,self.rect.left, laser.rect.right, laser,self.rect,laser.rect, scroll) and laser.is_enemy != True:
+                    laser.kill()
+                    self.kill()
+                    print("Got hit!")
+
+
+def is_collision_for_enemy(right, left, left1, right1,laser, rect1, rect2, scroll):
+    x1, y1, w1, h1 = rect1
+    x2, y2, w2, h2 = rect2
+    # right+=scroll
+    left-=scroll
+    # left1+=scroll
+    right1-=scroll
+    # Calculate the actuadl top and bottom edges of the rectangles
+    top1 = y1
+    bottom1 = y1 + h1
+    top2 = y2
+    bottom2 = y2 + h2
+    # print("right of player ", right, " left of the laser ", left)
+    # Check for overlap based on the x and y coordinates
+    if right >= left and left1 <= right1 and bottom1 >= top2 and top1 <= bottom2:
+        # laser.kill()
+        return True
+    else:
+        return False
+
 
 def generate_enemies(image_paths, num_enemies, common_width, common_height, speed):
     enemies = pygame.sprite.Group()
@@ -539,6 +565,7 @@ class Monster(pygame.sprite.Sprite):
         self.animation_list = []
         self.index = 0
         self.update_time = pygame.time.get_ticks()
+        self.is_falling = False
 
         # Define a common size for the images
         common_width = 64
@@ -554,8 +581,16 @@ class Monster(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.rect.center = (x, screen_height - 70)
         # self.rect.width/=2
-        self.base_y = screen_height - 70
-        self.ground_level = screen_height - 70  # Set ground level attribute
+        # self.base_y = screen_height - 70
+        # self.ground_level = screen_height - 70  # Set ground level attribute
+        self.start_x = x  # Store the starting x position
+        self.start_y = screen_height - 70  # Store the starting y position
+        
+    def reset_position(self):
+        self.rect.center = (self.start_x, self.start_y)
+        self.vel_y = 0
+        self.on_ground = True
+        self.is_falling = False
 
     def move(self, moving_left, moving_right):
         dx = 0
@@ -608,13 +643,17 @@ class Monster(pygame.sprite.Sprite):
                 break
         else:
             self.collided = False
+
+        # Check if the player has fallen off the screen
+        if self.rect.top > screen_height:
+            self.is_falling = True
         
         return dx  # Return the amount of horizontal movement
 
     def check_collisions(self, laser_group,scroll):
         global player_lives
         for laser in laser_group:
-            if is_collision(self.rect.right, laser.rect.left,self.rect.left, laser.rect.right, laser,self.rect,laser.rect, scroll, self.jump):
+            if is_collision(self.rect.right, laser.rect.left,self.rect.left, laser.rect.right, laser,self.rect,laser.rect, scroll, self.jump) and laser.is_player == False:
                 laser.kill()
                 # laser_group.update(screen_width)
                 player_lives -= 1
@@ -752,7 +791,7 @@ while running:
                     jump_sound.play()
                 elif event.key == pygame.K_j:
                     direction = player.direction
-                    laser = Laser(player, scroll)
+                    laser = Laser(player, scroll, True, False)
                     laser_group.add(laser)
             elif event.type == pygame.KEYUP:
                 if event.key == pygame.K_a:
@@ -766,6 +805,9 @@ while running:
 
             # Move the player
             dx = player.move(moving_left, moving_right)
+            
+            if player.is_falling:
+                player_lives = 0  # Set lives to 0 to trigger game over
             
             # Detect player and handle shooting for each enemy
             for enemy in enemies:
@@ -815,6 +857,8 @@ while running:
             enemies.update()
             for enemy in enemies:
                 enemy.draw(screen, scroll)
+                enemy.check_collisions(laser_group, scroll)
+
 
             laser_group.update(screen_width)
             laser_group.draw(screen)
