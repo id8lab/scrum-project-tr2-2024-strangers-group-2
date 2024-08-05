@@ -80,6 +80,7 @@ game_won = False
 menu_state = "main"
 game_state = "start"
 previous_state = 'start'
+final_time = 0
 
 # Helper function to draw text
 def draw_text(text, font, color, x, y):
@@ -309,12 +310,7 @@ def how_to_play():
             game_state = "play"
 
 def game_win():
-    global running
-
-    # Calculate the time taken to win
-    time_taken = (pygame.time.get_ticks() - start_time) // 1000
-    minutes = time_taken // 60
-    seconds = time_taken % 60
+    global running, game_won, final_time
 
     # Fill screen with black
     screen.fill((0,0,0))
@@ -323,19 +319,15 @@ def game_win():
     win_text = font.render('You Win!', True, TEXT_COL)
     screen.blit(win_text, ((screen_width - win_text.get_width()) // 2, (screen_height - win_text.get_height()) // 3.75 - 150))
 
-    # Render time taken text
+    # Calculate and render time taken
+    minutes = int(final_time) // 60
+    seconds = int(final_time) % 60
     time_text = font.render(f'Time: {minutes:02}:{seconds:02}', True, TEXT_COL)
     screen.blit(time_text, ((screen_width - time_text.get_width()) // 2, (screen_height - time_text.get_height()) // 2 - 150))
 
     # Render enemies killed text
     killed_text = font.render(f'Enemies Killed: {enemies_killed}', True, TEXT_COL)
     screen.blit(killed_text, ((screen_width - killed_text.get_width()) // 2, (screen_height - killed_text.get_height()) // 2))
-
-    # if restart_button.draw(screen):
-    #     restart_game()
-
-    # if quit_button.draw(screen):
-    #     running = False
 
     # Update display
     pygame.display.flip()
@@ -782,7 +774,6 @@ def draw_pause_background():
     overlay.fill((0, 0, 0))
     screen.blit(overlay, (0, 0))
 
-
 while running:
     if game_state == "start":
         for event in pygame.event.get():
@@ -835,7 +826,7 @@ while running:
                 elif event.key == pygame.K_d:
                     moving_right = False
 
-        if not game_paused and player_lives > 0:
+        if not game_paused and player_lives > 0 and not game_won:
             # Clear the screen
             screen.fill((0, 128, 255))
 
@@ -847,6 +838,8 @@ while running:
            
             if player.rect.right >= world.floor_list[-1].right:
                 game_state = "win"
+                game_won = True
+                final_time = timer  # Store the final time when the game is won
             
             # Detect player and handle shooting for each enemy
             for enemy in enemies:
@@ -898,7 +891,6 @@ while running:
                 enemy.draw(screen, scroll)
                 enemy.check_collisions(laser_group, scroll)
 
-
             laser_group.update(screen_width)
             laser_group.draw(screen)
             player.check_collisions(laser_group, scroll)
@@ -910,7 +902,7 @@ while running:
             draw_level()
             draw_lives()
 
-            # Update timer
+            # Update timer only if the game hasn't been won
             timer += 1/60  # Assuming 60 FPS
 
         elif game_paused:
@@ -919,7 +911,7 @@ while running:
         elif player_lives <= 0:
             game_over_screen()
     elif game_state == "win":
-            game_win()
+        game_win()
 
     # Update display
     pygame.display.flip()
