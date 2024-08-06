@@ -4,6 +4,7 @@ import os
 import csv
 import button
 import random
+import score
 
 # Initialize Pygame
 pygame.init()
@@ -75,9 +76,11 @@ instruction_button = button.Button(center_x - button_width // 2, 300, instructio
 
 # Game variables
 game_paused = False
+game_won = False
 menu_state = "main"
 game_state = "start"
 previous_state = 'start'
+final_time = 0
 
 # Helper function to draw text
 def draw_text(text, font, color, x, y):
@@ -163,7 +166,7 @@ def start_screen():
 
     screen.fill((0,0,0))
     
-    game_title = font.render('Shoot the sprite', True, TEXT_COL)
+    game_title = font.render('Ranger shooting', True, TEXT_COL)
     screen.blit(game_title, ((screen_width - game_title.get_width()) // 2, (screen_height - game_title.get_height()) // 9))
 
     if start_button.draw(screen):
@@ -210,7 +213,7 @@ def options():
         audio_settings()
 
 def start_game():
-    global level, player_lives, score, timer, scroll, moving_left, moving_right, game_paused, menu_state, game_state  
+    global level, player_lives, score, timer, scroll, moving_left, moving_right, game_paused, menu_state, game_state, enemies_killed, start_time
 
     level = 1
     player_lives = 3
@@ -229,6 +232,9 @@ def start_game():
 
     # Generate new enemies for the new level
     enemies.add(generate_enemies(enemy_images, 10, common_width, common_height, 2))
+
+    enemies_killed = 0  # Reset the counter
+    start_time = pygame.time.get_ticks()  # Reset the start time
 
     # Reset player position
     player.rect.center = (200, screen_height - 70)
@@ -303,6 +309,34 @@ def how_to_play():
         else:
             game_state = "play"
 
+def game_win():
+    global running, game_won, final_time, menu_state, game_state
+
+    # Fill screen with black
+    screen.fill((0,0,0))
+
+    # Render win text
+    win_text = font.render('You Win!', True, TEXT_COL)
+    screen.blit(win_text, ((screen_width - win_text.get_width()) // 2, (screen_height - win_text.get_height()) // 3.75 - 150))
+
+    # Calculate and render time taken
+    minutes = int(final_time) // 60
+    seconds = int(final_time) % 60
+    time_text = font.render(f'Time: {minutes:02}:{seconds:02}', True, TEXT_COL)
+    screen.blit(time_text, ((screen_width - time_text.get_width()) // 2, (screen_height - time_text.get_height()) // 2 - 150))
+
+    # Render enemies killed text
+    killed_text = font.render(f'Enemies Killed: {enemies_killed}', True, TEXT_COL)
+    screen.blit(killed_text, ((screen_width - killed_text.get_width()) // 2, (screen_height - killed_text.get_height()) // 2))
+
+    if back_button.draw(screen):
+        game_state = "start"
+        menu_state = "main"
+        game_won = False
+        restart_game()  # Reset the game state
+
+    # Update display
+    pygame.display.flip()
 
 # Function to draw time
 def draw_time():
@@ -647,16 +681,16 @@ class Monster(pygame.sprite.Sprite):
         # Check if the player has fallen off the screen
         if self.rect.top > screen_height:
             self.is_falling = True
-        
+
         return dx  # Return the amount of horizontal movement
 
-    def check_collisions(self, laser_group,scroll):
-        global player_lives
+    def check_collisions(self, laser_group, scroll):
+        global player_lives, enemies_killed
         for laser in laser_group:
-            if is_collision(self.rect.right, laser.rect.left,self.rect.left, laser.rect.right, laser,self.rect,laser.rect, scroll, self.jump) and laser.is_player == False:
+            if is_collision(self.rect.right, laser.rect.left, self.rect.left, laser.rect.right, laser, self.rect, laser.rect, scroll, self.jump) and laser.is_player != True:
                 laser.kill()
-                # laser_group.update(screen_width)
                 player_lives -= 1
+                enemies_killed += 1  # Increment the killed enemies counter
                 print("Got hit!")
                 if player_lives <= 0:
                     # Handle game over logic here if necessary
@@ -746,7 +780,6 @@ def draw_pause_background():
     overlay.fill((0, 0, 0))
     screen.blit(overlay, (0, 0))
 
-
 while running:
     if game_state == "start":
         for event in pygame.event.get():
@@ -799,7 +832,7 @@ while running:
                 elif event.key == pygame.K_d:
                     moving_right = False
 
-        if not game_paused and player_lives > 0:
+        if not game_paused and player_lives > 0 and not game_won:
             # Clear the screen
             screen.fill((0, 128, 255))
 
@@ -808,6 +841,11 @@ while running:
             
             if player.is_falling:
                 player_lives = 0  # Set lives to 0 to trigger game over
+           
+            if player.rect.right >= world.floor_list[-1].right:
+                game_state = "win"
+                game_won = True
+                final_time = timer  # Store the final time when the game is won
             
             # Detect player and handle shooting for each enemy
             for enemy in enemies:
@@ -859,7 +897,6 @@ while running:
                 enemy.draw(screen, scroll)
                 enemy.check_collisions(laser_group, scroll)
 
-
             laser_group.update(screen_width)
             laser_group.draw(screen)
             player.check_collisions(laser_group, scroll)
@@ -871,7 +908,7 @@ while running:
             draw_level()
             draw_lives()
 
-            # Update timer
+            # Update timer only if the game hasn't been won
             timer += 1/60  # Assuming 60 FPS
 
         elif game_paused:
@@ -879,6 +916,11 @@ while running:
             options()
         elif player_lives <= 0:
             game_over_screen()
+    elif game_state == "win":
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+        game_win()
 
     # Update display
     pygame.display.flip()
