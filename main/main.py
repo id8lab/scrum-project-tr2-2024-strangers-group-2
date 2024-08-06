@@ -166,7 +166,7 @@ def start_screen():
 
     screen.fill((0,0,0))
     
-    game_title = font.render('Shoot the sprite', True, TEXT_COL)
+    game_title = font.render('Ranger shooting', True, TEXT_COL)
     screen.blit(game_title, ((screen_width - game_title.get_width()) // 2, (screen_height - game_title.get_height()) // 9))
 
     if start_button.draw(screen):
@@ -310,7 +310,7 @@ def how_to_play():
             game_state = "play"
 
 def game_win():
-    global running, game_won, final_time
+    global running, game_won, final_time, menu_state, game_state
 
     # Fill screen with black
     screen.fill((0,0,0))
@@ -328,6 +328,12 @@ def game_win():
     # Render enemies killed text
     killed_text = font.render(f'Enemies Killed: {enemies_killed}', True, TEXT_COL)
     screen.blit(killed_text, ((screen_width - killed_text.get_width()) // 2, (screen_height - killed_text.get_height()) // 2))
+
+    if back_button.draw(screen):
+        game_state = "start"
+        menu_state = "main"
+        game_won = False
+        restart_game()  # Reset the game state
 
     # Update display
     pygame.display.flip()
@@ -911,6 +917,9 @@ while running:
         elif player_lives <= 0:
             game_over_screen()
     elif game_state == "win":
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
         game_win()
 
     # Update display
