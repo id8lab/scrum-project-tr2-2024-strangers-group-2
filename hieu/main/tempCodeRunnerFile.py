@@ -32,7 +32,11 @@ for row in range(ROWS):
     world_data.append(r)
 
 #load in level data and create world
+<<<<<<< HEAD:hieu/main/tempCodeRunnerFile.py
 with open(f'level{level}_data.csv', newline='') as csvfile:
+=======
+with open(f'level1_data.csv', newline='') as csvfile:
+>>>>>>> bee3dd69c870cc6f12538d91ef0db173a4524bfe:hieu/main.py
     reader = csv.reader(csvfile, delimiter=',')
     for x, row in enumerate(reader):
         for y, tile in enumerate(row):
@@ -417,11 +421,19 @@ class Monster(pygame.sprite.Sprite):
 
 # Load player images
 player_images = [
+<<<<<<< HEAD:hieu/main/tempCodeRunnerFile.py
     r'img_character\Screenshot_2024-06-14_163851-removebg-preview.png', 
     r'img_character\Screenshot_2024-06-14_164717-removebg-preview.png',
     r'img_character\Screenshot_2024-06-14_164033-removebg-preview.png',
     r'img_character\Screenshot_2024-06-14_164605-removebg-preview.png',
     r'img_character\Screenshot_2024-06-14_164820-removebg-preview.png'
+=======
+    r'img_character/Screenshot_2024-06-14_163851-removebg-preview.png', 
+    r'img_character/Screenshot_2024-06-14_164717-removebg-preview.png',
+    r'img_character/Screenshot_2024-06-14_164033-removebg-preview.png',
+    r'img_character/Screenshot_2024-06-14_164605-removebg-preview.png',
+    r'img_character/Screenshot_2024-06-14_164820-removebg-preview.png'
+>>>>>>> bee3dd69c870cc6f12538d91ef0db173a4524bfe:hieu/main.py
 ]
 
 player = Monster(player_images, 200, 0.15, 5)
