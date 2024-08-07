@@ -81,6 +81,7 @@ menu_state = "main"
 game_state = "start"
 previous_state = 'start'
 final_time = 0
+enemies_killed = 0
 
 # Helper function to draw text
 def draw_text(text, font, color, x, y):
@@ -243,9 +244,10 @@ def start_game():
 
 # Function to restart the game back in the first level
 def restart_game():
-    global player_lives, score, game_over_sound_flag, scroll, moving_left, moving_right
+    global player_lives, score, game_over_sound_flag, scroll, moving_left, moving_right, enemies_killed
     player_lives = 3
     score = 0
+    enemies_killed = 0
     game_over_sound_flag = False
     scroll = 0
     moving_left = False
@@ -347,6 +349,7 @@ def draw_time():
 
 # Function to draw score
 def draw_score():
+    score = enemies_killed
     score_text = font.render(f'Score: {score}', True, WHITE)
     screen.blit(score_text, (screen_width - score_text.get_width() - 10, 10))  # Top right corner
 
@@ -391,6 +394,7 @@ class World():
                 if is_collision_for_block(tile.right, laser.rect.left, tile.left, laser.rect.right, tile,laser.rect, scroll):
                     laser.kill()  # Remove the laser if it hits a ground tile
                     break
+                
 class Laser(pygame.sprite.Sprite):
     def __init__(self, player, scroll,is_player,is_enemy ):
         pygame.sprite.Sprite.__init__(self)
@@ -525,9 +529,11 @@ class Enemy(pygame.sprite.Sprite):
         rect_with_scroll = self.rect.move(scroll, 0)
         screen.blit(pygame.transform.flip(self.image, self.flip, False), rect_with_scroll)
     def check_collisions(self, laser_group,scroll):
+            global enemies_killed
             for laser in laser_group:
                 if is_collision_for_enemy(self.rect.right, laser.rect.left,self.rect.left, laser.rect.right, laser,self.rect,laser.rect, scroll) and laser.is_enemy != True:
                     laser.kill()
+                    enemies_killed += 1
                     self.kill()
                     print("Got hit!")
 
